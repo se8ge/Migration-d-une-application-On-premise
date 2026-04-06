@@ -1,0 +1,2 @@
+﻿Table	Create Table
+stock_movement_details	CREATE TABLE `stock_movement_details` (\n  `movement_id` int NOT NULL,\n  `product_id` int NOT NULL,\n  `proposal_qty` int NOT NULL,\n  `issue_qty` int NOT NULL,\n  `received_qty` int NOT NULL,\n  KEY `stock_movement_details_ibfk_1` (`movement_id`),\n  CONSTRAINT `stock_movement_details_ibfk_1` FOREIGN KEY (`movement_id`) REFERENCES `stock_movement` (`movement_id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci

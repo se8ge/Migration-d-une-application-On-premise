@@ -1,0 +1,10 @@
+﻿Field	Type	Null	Key	Default	Extra
+StoreID	int	NO		NULL	
+Stock_Date	datetime	NO		NULL	
+ProdID	bigint	NO		NULL	
+InQty	int	NO		NULL	
+OutQty	int	NO		NULL	
+category_id	varchar(11)	NO		NULL	
+brand_id	varchar(11)	NO		NULL	
+model_id	varchar(11)	NO		NULL	
+Remarks	varchar(50)	NO		NULL	

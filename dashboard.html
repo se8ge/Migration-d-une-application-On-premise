@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockLive - Gestion Multi-Magasins</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Login Section -->
+    <div id="login-overlay">
+        <div class="login-card">
+            <div class="logo">📦 StockLive</div>
+            <h2 style="margin-bottom: 2rem;">Connexion Sécurisée</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Email Professionnel</label>
+                    <input type="email" id="login-email" placeholder="admin@stocklive.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Mot de passe</label>
+                    <input type="password" id="login-password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
+                    Accéder au Dashboard
+                </button>
+            </form>
+            <p id="login-error" style="color: var(--danger); margin-top: 1.5rem; display: none; font-size: 0.9rem;"></p>
+        </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="logo">
+            <span style="background: var(--primary); color: white; padding: 6px; border-radius: 8px;">📦</span>
+            <span>StockLive</span>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a href="#" class="nav-link active" data-section="dashboard">
+                    <span>📊</span> Tableau de Bord
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-section="inventory">
+                    <span>📦</span> Inventaire
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-section="movements">
+                    <span>🚚</span> Mouvements
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-section="suppliers">
+                    <span>🤝</span> Fournisseurs
+                </a>
+            </li>
+        </ul>
+        <div style="margin-top: auto; padding-top: 2rem;">
+            <button id="logout-btn" class="btn btn-danger" style="width: 100%;">
+                <span>🚪</span> Déconnexion
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section active">
+            <header>
+                <div>
+                    <h1 style="background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Vue d'ensemble</h1>
+                    <p style="color: var(--text-muted); margin-top: 0.5rem;">Suivi en temps réel de votre activité.</p>
+                </div>
+                <div class="header-actions">
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">Magasin :</span>
+                        <select id="store-selector" style="width: auto;">
+                            <option value="1">Magasin Principal</option>
+                        </select>
+                    </div>
+                </div>
+            </header>
+
+            <div class="stats-grid">
+                <div class="card">
+                    <h3>Produits Totaux</h3>
+                    <div class="value" id="stat-total">0</div>
+                    <div style="color: var(--primary); font-size: 0.8rem; margin-top: 0.5rem;">↑ 12% ce mois</div>
+                </div>
+                <div class="card">
+                    <h3>Valeur Stock</h3>
+                    <div class="value" id="stat-value">0 €</div>
+                    <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">Dernière maj : Aujourd'hui</div>
+                </div>
+                <div class="card alert-card">
+                    <h3 style="color: #ef4444;">Alertes Critiques</h3>
+                    <div class="value" id="stat-alerts" style="color: #ef4444;">0</div>
+                    <div style="color: #ef4444; font-size: 0.8rem; margin-top: 0.5rem;">Action requise immédiate</div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Dernières Alertes de Stock</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produit</th>
+                            <th>Stock Actuel</th>
+                            <th>Seuil Alerte</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alert-body">
+                        <!-- Dynamique -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Inventory Section -->
+        <section id="inventory" class="section">
+            <header>
+                <div>
+                    <h1>Inventaire Global</h1>
+                    <p style="color: var(--text-muted); margin-top: 0.5rem;">Gestion de tous vos produits stockés.</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="showModal('product-modal')">
+                        <span>+</span> Ajouter un Produit
+                    </button>
+                </div>
+            </header>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Désignation</th>
+                            <th>Prix Unitaire</th>
+                            <th>Seuil</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-body">
+                        <!-- Dynamique -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Movements Section -->
+        <section id="movements" class="section">
+            <header>
+                <h1>Mouvements de Stock</h1>
+                <button class="btn btn-primary" onclick="showModal('movement-modal')">
+                    <span>🔄</span> Nouveau Transfert
+                </button>
+            </header>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Référence</th>
+                            <th>Origine</th>
+                            <th>Destination</th>
+                            <th>Date</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movements-body">
+                        <!-- Dynamique -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Suppliers Section -->
+        <section id="suppliers" class="section">
+            <header>
+                <h1>Partenaires / Fournisseurs</h1>
+                <button class="btn btn-primary" onclick="showModal('supplier-modal')">
+                    <span>🤝</span> Ajouter Fournisseur
+                </button>
+            </header>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Nom</th>
+                            <th>Contact</th>
+                            <th>Téléphone</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="suppliers-body">
+                        <!-- Dynamique -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals (Product, Supplier, etc.) -->
+    <!-- Product Modal -->
+    <div id="product-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modal-title">📦 Fiche Produit</h2>
+                <button onclick="hideModal('product-modal')" class="icon-btn" style="font-size: 1.5rem;">✕</button>
+            </div>
+            <form id="product-form">
+                <input type="hidden" id="prod-id">
+                <div class="form-group">
+                    <label>Nom du Produit</label>
+                    <input type="text" id="prod-name" placeholder="Ex: iPhone 15 Pro" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="form-group">
+                        <label>Code Article</label>
+                        <input type="text" id="prod-code" placeholder="IP15-64" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Catégorie</label>
+                        <input type="text" id="prod-cat" placeholder="Électronique" required>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="form-group">
+                        <label>Prix Achat (€)</label>
+                        <input type="number" step="0.01" id="prod-price" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Seuil de Réappro.</label>
+                        <input type="number" id="prod-min" required>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button type="button" class="btn btn-danger" onclick="hideModal('product-modal')" style="flex: 1; justify-content: center;">Annuler</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 2; justify-content: center;">Enregistrer le Produit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="dashboard.js"></script>
+</body>
+</html>
