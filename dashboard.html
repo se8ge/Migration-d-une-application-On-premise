@@ -221,6 +221,7 @@
                     <label>Nom du Produit</label>
                     <input type="text" id="prod-name" placeholder="Ex: iPhone 15 Pro" required>
                 </div>
+                <!-- ... reste du formulaire ... -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                     <div class="form-group">
                         <label>Code Article</label>
@@ -244,6 +245,88 @@
                 <div style="display: flex; gap: 1rem; margin-top: 1rem;">
                     <button type="button" class="btn btn-danger" onclick="hideModal('product-modal')" style="flex: 1; justify-content: center;">Annuler</button>
                     <button type="submit" class="btn btn-primary" style="flex: 2; justify-content: center;">Enregistrer le Produit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Supplier Modal -->
+    <div id="supplier-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>🤝 Nouveau Fournisseur</h2>
+                <button onclick="hideModal('supplier-modal')" class="icon-btn" style="font-size: 1.5rem;">✕</button>
+            </div>
+            <form id="supplier-form">
+                <div class="form-group">
+                    <label>Nom du Fournisseur</label>
+                    <input type="text" id="supp-name" placeholder="Ex: Apple Distribution" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="form-group">
+                        <label>Code</label>
+                        <input type="text" id="supp-code" placeholder="SUPP-001" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Téléphone</label>
+                        <input type="text" id="supp-phone" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="supp-email" required>
+                </div>
+                <div class="form-group">
+                    <label>Adresse Physique</label>
+                    <input type="text" id="supp-addr" required>
+                </div>
+                <div class="form-group">
+                    <label>Contact Référent</label>
+                    <input type="text" id="supp-contact" placeholder="Nom du contact" required>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button type="button" class="btn btn-danger" onclick="hideModal('supplier-modal')" style="flex: 1; justify-content: center;">Annuler</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 2; justify-content: center;">Enregistrer le Fournisseur</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Movement Modal -->
+    <div id="movement-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>🔄 Nouveau Mouvement</h2>
+                <button onclick="hideModal('movement-modal')" class="icon-btn" style="font-size: 1.5rem;">✕</button>
+            </div>
+            <form id="movement-form">
+                <div class="form-group">
+                    <label>Produit</label>
+                    <select id="move-prod" required>
+                        <!-- Dynamique -->
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="form-group">
+                        <label>Depuis Magasin</label>
+                        <select id="move-from" required>
+                            <option value="1">Magasin Principal</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Vers Magasin</label>
+                        <select id="move-to" required>
+                            <option value="1">Magasin Principal</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Quantité</label>
+                    <input type="number" id="move-qty" min="1" required>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button type="button" class="btn btn-danger" onclick="hideModal('movement-modal')" style="flex: 1; justify-content: center;">Annuler</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 2; justify-content: center;">Confirmer le Mouvement</button>
                 </div>
             </form>
         </div>

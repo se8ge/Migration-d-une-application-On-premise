@@ -1,8 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from app import models, schemas, crud, database
 from typing import List, Optional
+import os
 
 # Création des tables si elles n'existent pas
 models.Base.metadata.create_all(bind=database.engine)
@@ -17,7 +20,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
+
+@app.get("/api")
 def read_root():
     return {"message": "Bienvenue dans l'API Multi Store (Python + POO)"}
 
@@ -121,3 +125,12 @@ def get_store_stock(store_id: int, db: Session = Depends(database.get_db)):
 @app.get("/stock/alerts/", response_model=List[schemas.ProductResponse])
 def get_stock_alerts(store_id: Optional[int] = None, db: Session = Depends(database.get_db)):
     return crud.product_crud.get_stock_alerts(db=db, store_id=store_id)
+
+# --- Service Visualisation (Dashboard) ---
+# TOUJOURS À LA FIN pour ne pas bloquer les routes API
+@app.get("/")
+def read_dashboard():
+    return FileResponse("dashboard.html")
+
+# Montage pour les fichiers CSS, JS, etc.
+app.mount("/", StaticFiles(directory="."), name="static")

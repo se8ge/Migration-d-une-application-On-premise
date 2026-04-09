@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # La Base de Données (remplace WAMP)
+  db:
+    image: mysql:8.0
+    container_name: stocklive-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: stocklive_db
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_USER: serge_admin
+      MYSQL_PASSWORD: serge_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      # On injecte tes schémas SQL ici pour l'init
+      - ./init_db:/docker-entrypoint-initdb.d
+    networks:
+      - stocklive-network
+
+  # Ton API FastAPI
+  api:
+    build: .
+    container_name: stocklive-api
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    environment:
+      # TRÈS IMPORTANT : On utilise le nom du service 'db' comme hôte
+      - DATABASE_URL=mysql+mysqlconnector://serge_admin:serge_password@db:3306/stocklive_db
+    networks:
+      - stocklive-network
+
+networks:
+  stocklive-network:
+    driver: bridge
+
+volumes:
+  db_data:

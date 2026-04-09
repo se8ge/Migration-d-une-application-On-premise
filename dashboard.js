@@ -2,7 +2,7 @@
 let currentUser = null;
 let allProducts = [];
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = window.location.origin;
 
 // --- Gestion des Vues ---
 document.querySelectorAll('.nav-link').forEach(link => {
@@ -19,6 +19,8 @@ document.querySelectorAll('.nav-link').forEach(link => {
 
         if(sectionId === 'inventory') refreshInventory();
         if(sectionId === 'dashboard') refreshStats();
+        if(sectionId === 'suppliers') refreshSuppliers();
+        if(sectionId === 'movements') refreshMovements();
     });
 });
 
@@ -162,6 +164,129 @@ function editProduct(id) {
     showModal('product-modal');
 }
 
+// --- Gestion des Fournisseurs ---
+async function refreshSuppliers() {
+    const body = document.getElementById('suppliers-body');
+    body.innerHTML = '<tr><td colspan="5" style="text-align:center">Chargement...</td></tr>';
+
+    try {
+        const res = await fetch(`${API_BASE}/suppliers/`);
+        if (res.ok) {
+            const suppliers = await res.json();
+            body.innerHTML = '';
+            suppliers.forEach(s => {
+                body.innerHTML += `
+                    <tr>
+                        <td><code>${s.supplier_code}</code></td>
+                        <td>${s.supplier_name}</td>
+                        <td>${s.contact_per_name}</td>
+                        <td>${s.phone}</td>
+                        <td style="text-align:right">
+                            <button class="icon-btn">✏️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+    } catch (err) {
+        body.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--danger)">Erreur</td></tr>';
+    }
+}
+
+document.getElementById('supplier-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+        supplier_code: document.getElementById('supp-code').value,
+        supplier_name: document.getElementById('supp-name').value,
+        address: document.getElementById('supp-addr').value,
+        phone: document.getElementById('supp-phone').value,
+        email: document.getElementById('supp-email').value,
+        contact_per_name: document.getElementById('supp-contact').value,
+        c_p_contact: document.getElementById('supp-phone').value,
+        createby: 1
+    };
+
+    try {
+        const res = await fetch(`${API_BASE}/suppliers/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            hideModal('supplier-modal');
+            refreshSuppliers();
+            alert("Fournisseur ajouté !");
+        }
+    } catch (err) {
+        alert("Erreur lors de l'ajout");
+    }
+});
+
+// --- Gestion des Mouvements ---
+async function refreshMovements() {
+    const body = document.getElementById('movements-body');
+    body.innerHTML = '<tr><td colspan="5" style="text-align:center">Chargement...</td></tr>';
+
+    try {
+        const res = await fetch(`${API_BASE}/stock/movements/`);
+        if (res.ok) {
+            const movements = await res.json();
+            body.innerHTML = '';
+            movements.forEach(m => {
+                body.innerHTML += `
+                    <tr>
+                        <td><code>${m.proposal_code}</code></td>
+                        <td>Magasin ${m.from_store_id}</td>
+                        <td>Magasin ${m.for_store_id}</td>
+                        <td>${m.proposal_datetime}</td>
+                        <td><span class="badge ${m.is_approved ? 'badge-active' : 'badge-low'}">${m.is_approved ? 'Approuvé' : 'En attente'}</span></td>
+                    </tr>
+                `;
+            });
+        }
+    } catch (err) {
+        body.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--danger)">Erreur</td></tr>';
+    }
+}
+
+document.getElementById('movement-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+        proposal_code: "MOV-" + Date.now().toString().slice(-6),
+        issue_code: null,
+        for_store_id: parseInt(document.getElementById('move-to').value),
+        from_store_id: parseInt(document.getElementById('move-from').value),
+        proposal_datetime: new Date().toISOString().split('T')[0],
+        proposal_by: 1,
+        issue_datetime: new Date().toISOString().split('T')[0],
+        issue_by: 1,
+        is_approved: true,
+        is_received: true,
+        details: [
+            {
+                product_id: parseInt(document.getElementById('move-prod').value),
+                received_qty: parseInt(document.getElementById('move-qty').value)
+            }
+        ]
+    };
+
+    try {
+        const res = await fetch(`${API_BASE}/stock/movements/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            hideModal('movement-modal');
+            refreshMovements();
+            refreshStats();
+            alert("Mouvement enregistré !");
+        }
+    } catch (err) {
+        alert("Erreur lors du mouvement");
+    }
+});
+
 // --- Statistiques & Alertes ---
 async function refreshStats() {
     try {
@@ -203,6 +328,12 @@ function showModal(id) {
         document.getElementById('prod-id').value = "";
         document.getElementById('modal-title').innerText = "Ajouter un Produit";
     }
+    
+    if (id === 'movement-modal') {
+        const select = document.getElementById('move-prod');
+        select.innerHTML = allProducts.map(p => `<option value="${p.product_id}">${p.product_name} (${p.product_code})</option>`).join('');
+    }
+
     document.getElementById(id).style.display = 'flex';
 }
 
