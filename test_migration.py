@@ -1,6 +1,10 @@
+import os
 from app.database import SessionLocal, engine
 from app import models, schemas, crud
 from sqlalchemy.orm import Session
+
+# Assurer que les tables existent (crucial pour le CI)
+models.Base.metadata.create_all(bind=engine)
 
 def test_db():
     db = SessionLocal()
@@ -8,11 +12,11 @@ def test_db():
         # 1. Création d'un magasin de test
         print("--- Création d'un magasin de test ---")
         store_in = schemas.StoreCreate(
-            store_name="Magasin Test Antigravity",
+            store_name="Magasin StockLive",
             store_code="T01",
             store_phone="0123456789",
             store_address="123 Rue de Test, Ville",
-            createby="antigravity"
+            createby=" admin"
         )
         db_store = crud.store_crud.create_store(db, store_in)
         print(f"Magasin créé : {db_store.store_name} (ID: {db_store.store_id})")

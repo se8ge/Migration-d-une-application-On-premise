@@ -1,18 +1,16 @@
-version: '3.8'
-
 services:
   # La Base de Données (remplace WAMP)
   db:
     image: mysql:8.0
     container_name: stocklive-db
-    restart: always
-    environment:
-      MYSQL_DATABASE: stocklive_db
-      MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_USER: serge_admin
-      MYSQL_PASSWORD: serge_password
-    ports:
-      - "3307:3306"
+    restart: unless-stopped
+    env_file: .env
+    # ports section removed for security
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u", "root", "-p$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - db_data:/var/lib/mysql
       # On injecte tes schémas SQL ici pour l'init
@@ -24,15 +22,21 @@ services:
   api:
     build: .
     container_name: stocklive-api
+    restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    env_file: .env
     ports:
       - "8000:8000"
-    environment:
-      # TRÈS IMPORTANT : On utilise le nom du service 'db' comme hôte
-      - DATABASE_URL=mysql+mysqlconnector://serge_admin:serge_password@db:3306/stocklive_db
     networks:
       - stocklive-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
 networks:
   stocklive-network:
