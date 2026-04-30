@@ -20,19 +20,19 @@ StockLive is evolving from a monolithic on-premise application to a decoupled cl
 
 ```mermaid
 graph LR
-    User((User/Browser)) -- "Static Assets (HTML/JS)" --- S3[Amazon S3 + CloudFront]
-    User -- "REST API Calls" --- WAF[AWS WAF]
+    User((User/Browser)) -- "Port 443" --- S3[Amazon S3 + CloudFront]
+    User -- "REST API (Port 8000)" --- WAF[AWS WAF]
     WAF --- ALB[Application Load Balancer]
-    ALB --- EKS[Amazon EKS / EC2 Cluster]
-    EKS --- RDS[(Amazon RDS MySQL)]
+    ALB --- EC2["EC2 Instances (Docker)<br/>10.0.1.0/24"]
+    EC2 --- RDS[("Amazon RDS (MySQL)<br/>10.0.3.0/24<br/>Port 3306")]
     
     subgraph "Observability & Security"
-        CW[CloudWatch]
+        PROM[Prometheus / Grafana]
         SM[Secrets Manager]
     end
     
-    EKS -.-> CW
-    EKS -.-> SM
+    EC2 -.-> PROM
+    EC2 -.-> SM
 ```
 
 ---
@@ -71,44 +71,44 @@ graph TD
 
 The target architecture leverages AWS managed services to ensure maximum uptime and security.
 
-### Infrastructure Diagram
+### Infrastructure Diagram (Annotated)
 ```mermaid
 flowchart TB
     subgraph Internet
         User((User))
     end
 
-    subgraph "AWS Cloud"
-        S3["Amazon S3 (Frontend Hosting)"]
+    subgraph "AWS Cloud (Region: eu-west-3)"
+        S3["Amazon S3<br/>(Frontend Hosting)"]
         
-        subgraph "VPC (Private & Public Subnets)"
-            WAF["AWS WAF (Security)"]
-            ALB["Application Load Balancer"]
+        subgraph "VPC: 10.0.0.0/16"
+            WAF["AWS WAF"]
+            ALB["ALB (Public)<br/>Ports 80/443"]
             
-            subgraph "Compute Layer (Auto-Scaling)"
-                EC2_1["EC2 Instance (FastAPI)"]
-                EC2_2["EC2 Instance (FastAPI)"]
+            subgraph "Public Subnets (10.0.1.0/24, 10.0.2.0/24)"
+                EC2_1["EC2 Instance (App)<br/>Port 8000"]
+                EC2_2["EC2 Instance (App)<br/>Port 8000"]
             end
             
-            subgraph "Data Layer"
-                RDS[("Amazon RDS (MySQL)<br/>Multi-AZ Replication")]
+            subgraph "Private Subnets (10.0.3.0/24, 10.0.4.0/24)"
+                RDS[("Amazon RDS (MySQL)<br/>Port 3306<br/>Multi-AZ")]
             end
             
             subgraph "Management & Security"
                 Secrets["AWS Secrets Manager"]
-                Logs["Amazon CloudWatch"]
+                PROM["Prometheus / Grafana<br/>Monitoring Port 3000"]
             end
         end
     end
 
     User --> S3
-    User --> WAF
+    User -->|HTTP 80| WAF
     WAF --> ALB
-    ALB --> EC2_1
-    ALB --> EC2_2
-    EC2_1 & EC2_2 --> RDS
+    ALB -->|Forward 8000| EC2_1
+    ALB -->|Forward 8000| EC2_2
+    EC2_1 & EC2_2 -->|SQL 3306| RDS
     EC2_1 & EC2_2 -.-> Secrets
-    EC2_1 & EC2_2 -.-> Logs
+    EC2_1 & EC2_2 -.-> PROM
 ```
 
 ### Architecture Highlights:
