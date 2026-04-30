@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from app import models, schemas, crud, database
 from typing import List, Optional
+from prometheus_fastapi_instrumentator import Instrumentator
 import os
 
 # Création des tables si elles n'existent pas
@@ -19,6 +20,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Instrumentation Prometheus
+Instrumentator().instrument(app).expose(app)
 
 
 @app.get("/api")

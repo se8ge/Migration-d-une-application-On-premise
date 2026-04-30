@@ -139,16 +139,54 @@ Recent improvements implemented to harden the system:
 
 ---
 
-## 🚀 CI/CD Pipeline
+## ☁️ Phase 2: AWS Cloud Infrastructure (Delivered via IaC)
 
-The project uses **GitHub Actions** for automated testing and deployment.
+The cloud infrastructure is now fully defined using **Terraform**, allowing for automated, reproducible deployments.
 
-1. **Lint & Test**: Every push triggers a code quality check.
-2. **Docker Build**: Automated building of the `stocklive-api` image.
-3. **Security Scan**: Scanning for vulnerabilities in dependencies.
-4. **Deploy**: (Planned) Automated deployment to AWS EKS or EC2 via Terraform.
+### Infrastructure Highlights:
+- **VPC & Networking**: Custom VPC with 2 public subnets (ALB/EC2) and 2 private subnets (RDS).
+- **Security Groups**: Granular traffic control (ALB allows HTTP, App allows ALB, DB allows App).
+- **Database**: Multi-AZ **Amazon RDS (MySQL)** for high availability.
+- **Compute**: EC2 instances with Docker-ready configuration.
+- **Load Balancing**: **Application Load Balancer (ALB)** for traffic distribution and health monitoring.
+- **State Management**: Remote S3 backend with DynamoDB locking for CI/CD consistency.
 
 ---
 
-> [!NOTE]
-> This architecture is designed to grow with the application. The current Phase 1 implementation provides a solid foundation for the Phase 2 cloud transition.
+## 📊 Observability & Monitoring (BC03)
+
+A complete monitoring stack has been implemented to ensure system health and performance visibility.
+
+### Monitoring Architecture:
+- **Prometheus**: Metrics collection from the FastAPI app and system nodes.
+- **Grafana**: Visualization dashboard (admin/admin) on port 3000.
+- **Node Exporter**: System-level metrics (CPU, Memory, Disk).
+- **FastAPI Instrumentation**: Real-time application metrics (requests, latency, errors) via `prometheus-fastapi-instrumentator`.
+
+---
+
+## 🚀 CI/CD Pipeline
+
+The project uses **GitHub Actions** for automated testing, security, and deployment.
+
+1. **Lint & Test**: Unit tests and database migration validation.
+2. **Docker Build**: Automated building of the `stocklive-api` image.
+3. **Security Scan**: Real-time vulnerability scanning using **Trivy** (fails on HIGH/CRITICAL).
+4. **Deploy**: Automated deployment to AWS via **Terraform Apply**.
+
+---
+
+## 🏁 Delivery Status Summary
+
+| Component | Status | Implementation |
+| :--- | :--- | :--- |
+| **Containerization** | ✅ Delivered | Docker & Docker Compose |
+| **Infrastructure (IaC)** | ✅ Delivered | Terraform (VPC, RDS, EC2, ALB, SG) |
+| **CI/CD Pipeline** | ✅ Delivered | GitHub Actions + Trivy + TF Apply |
+| **Supervision** | ✅ Delivered | Prometheus + Grafana + Node Exporter |
+| **Security** | 🛡️ Hardened | Non-root users, SG isolation, Scan Trivy |
+
+---
+
+> [!IMPORTANT]
+> This project now meets the requirements for BC01 (IaC & Cloud), BC02 (Containers & CI/CD), and BC03 (Supervision).

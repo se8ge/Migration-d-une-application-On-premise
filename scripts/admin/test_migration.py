@@ -3,13 +3,13 @@ from app.database import SessionLocal, engine
 from app import models, schemas, crud
 from sqlalchemy.orm import Session
 
-# Assurer que les tables existent (crucial pour le CI)
+
 models.Base.metadata.create_all(bind=engine)
 
 def test_db():
     db = SessionLocal()
     try:
-        # 1. Création d'un magasin de test
+
         print("--- Création d'un magasin de test ---")
         store_in = schemas.StoreCreate(
             store_name="Magasin StockLive",
@@ -21,7 +21,7 @@ def test_db():
         db_store = crud.store_crud.create_store(db, store_in)
         print(f"Magasin créé : {db_store.store_name} (ID: {db_store.store_id})")
 
-        # 2. Création d'un utilisateur lié à ce magasin
+
         print("\n--- Création d'un utilisateur de test lié au magasin ---")
         user_in = schemas.UserCreate(
             email="test_user_store@example.com",
@@ -38,18 +38,13 @@ def test_db():
             db_user = crud.user_crud.create_user(db, user_in)
             print(f"Utilisateur créé : {db_user.email} (ID: {db_user.id}, StoreID: {db_user.store_id})")
 
-        # 3. Vérification de la relation
+
         print("\n--- Vérification de la relation Store -> User ---")
         db_store_refreshed = crud.store_crud.get_store(db, db_store.store_id)
         print(f"Magasin : {db_store_refreshed.store_name}")
         print(f"Utilisateurs rattachés : {[u.email for u in db_store_refreshed.users]}")
 
-        # 4. Nettoyage (Optionnel - on peut laisser pour la démo si vous voulez, mais ici on va supprimer)
-        # print("\n--- Nettoyage ---")
-        # db.delete(db_user)
-        # db.delete(db_store)
-        # db.commit()
-        # print("Données de test supprimées.")
+
 
     except Exception as e:
         print(f"Erreur durant le test : {e}")

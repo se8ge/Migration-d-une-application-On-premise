@@ -45,7 +45,7 @@ jobs:
         env:
           DATABASE_URL: mysql+mysqlconnector://root:root_password@127.0.0.1:3306/stocklive_db
         run: |
-          python test_migration.py
+          python scripts/admin/test_migration.py
 
   build-docker:
     name: Build Docker Image
@@ -64,8 +64,15 @@ jobs:
           load: true
           tags: stocklive-api:latest
 
-      - name: Image Scan (Optional)
-        run: echo "Scanning image for vulnerabilities..."
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'stocklive-api:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
 
   deploy-aws:
     name: Deploy to AWS (CD)
@@ -90,5 +97,4 @@ jobs:
 
       - name: Terraform Plan/Apply
         run: |
-          echo "Ici, on appliquerait l'infrastructure Terraform et on déploierait l'image."
-          # terraform -chdir=terraform apply -auto-approve
+          terraform -chdir=terraform apply -auto-approve
