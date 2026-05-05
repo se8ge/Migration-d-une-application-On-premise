@@ -9,18 +9,25 @@ models.Base.metadata.create_all(bind=engine)
 def test_db():
     db = SessionLocal()
     try:
+        print("--- Vérification de la connexion ---")
+        # Test simple de connexion
+        db.execute("SELECT 1")
+        print("Connexion réussie !")
 
-        print("--- Création d'un magasin de test ---")
+        print("\n--- Création des tables ---")
+        models.Base.metadata.create_all(bind=engine)
+        print("Tables créées avec succès.")
+
+        print("\n--- Création d'un magasin de test ---")
         store_in = schemas.StoreCreate(
             store_name="Magasin StockLive",
             store_code="T01",
             store_phone="0123456789",
             store_address="123 Rue de Test, Ville",
-            createby=" admin"
+            createby="admin"
         )
         db_store = crud.store_crud.create_store(db, store_in)
         print(f"Magasin créé : {db_store.store_name} (ID: {db_store.store_id})")
-
 
         print("\n--- Création d'un utilisateur de test lié au magasin ---")
         user_in = schemas.UserCreate(
@@ -33,22 +40,26 @@ def test_db():
         )
         db_user = crud.user_crud.get_user_by_email(db, email=user_in.email)
         if db_user:
-            print("L'utilisateur existe déjà. On l'utilise.")
+            print("L'utilisateur existe déjà.")
         else:
             db_user = crud.user_crud.create_user(db, user_in)
-            print(f"Utilisateur créé : {db_user.email} (ID: {db_user.id}, StoreID: {db_user.store_id})")
-
+            print(f"Utilisateur créé : {db_user.email} (ID: {db_user.id})")
 
         print("\n--- Vérification de la relation Store -> User ---")
         db_store_refreshed = crud.store_crud.get_store(db, db_store.store_id)
         print(f"Magasin : {db_store_refreshed.store_name}")
-        print(f"Utilisateurs rattachés : {[u.email for u in db_store_refreshed.users]}")
+        users = [u.email for u in db_store_refreshed.users]
+        print(f"Utilisateurs rattachés : {users}")
+        
+        if db_user.email not in users:
+            raise Exception("L'utilisateur n'est pas rattaché au magasin !")
 
-
+        print("\n✅ TEST RÉUSSI !")
 
     except Exception as e:
-        print(f"Erreur durant le test : {e}")
+        print(f"\n❌ ERREUR DURANT LE TEST : {e}")
         db.rollback()
+        raise e # On relance l'erreur pour que le CI/CD échoue proprement avec un message
     finally:
         db.close()
 
