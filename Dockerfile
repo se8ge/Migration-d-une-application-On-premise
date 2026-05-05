@@ -19,6 +19,9 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Mise à jour des outils pré-installés pour corriger les failles de sécurité de l'image de base
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+
 # Récupération des dépendances installées à l'étape précédente
 COPY --from=builder /root/.local /home/appuser/.local
 COPY . .
