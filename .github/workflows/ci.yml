@@ -37,7 +37,14 @@ jobs:
 
       - name: Wait for MySQL
         run: |
-          python -c "import socket; import time; s = socket.socket(socket.AF_INET, socket.SOCK_STREAM); while s.connect_ex(('127.0.0.1', 3306)) != 0: time.sleep(1)"
+          python -c "
+          import socket
+          import time
+          s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+          while s.connect_ex(('127.0.0.1', 3306)) != 0:
+              print('Waiting for MySQL...')
+              time.sleep(1)
+          "
 
       - name: Run migration tests
         env:
