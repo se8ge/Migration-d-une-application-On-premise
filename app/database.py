@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 # On lit l'URL depuis l'environnement (Docker) ou on utilise celle par défaut (WAMP local)
 SQLALCHEMY_DATABASE_URL = os.getenv(
     "DATABASE_URL", 
-    "mysql+mysqlconnector://root:@localhost/ghu"
+    "mysql+pymysql://root:@localhost/ghu"
 )
 
 # Création de l'engine
