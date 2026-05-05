@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y \
 
 # Installation des dépendances Python dans un répertoire local
 COPY requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt
+RUN pip install --user --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --user --no-cache-dir -r requirements.txt
 
 # --- Étape 2 : Runtime ---
 FROM python:3.11-slim
@@ -26,6 +27,7 @@ COPY . .
 # et nettoyage immédiat du cache apt
 RUN apt-get update && apt-get install -y \
     libmariadb3 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Création d'un utilisateur non-root pour la sécurité
