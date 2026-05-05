@@ -6,6 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')
 
 from app.database import SessionLocal, engine
 from app import models, schemas, crud
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 
@@ -16,7 +17,7 @@ def test_db():
     try:
         print("--- Vérification de la connexion ---")
         # Test simple de connexion
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         print("Connexion réussie !")
 
         print("\n--- Création des tables ---")
