@@ -1,3 +1,9 @@
+import os
+import sys
+
+# Ajouter le répertoire racine du projet au PYTHONPATH
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 from sqlalchemy import create_engine, inspect
 from app.database import SQLALCHEMY_DATABASE_URL
 
