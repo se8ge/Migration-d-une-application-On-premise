@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, main2 ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -97,4 +97,6 @@ jobs:
 
       - name: Terraform Plan/Apply
         run: |
-          terraform -chdir=terraform apply -auto-approve
+          terraform -chdir=terraform apply -auto-approve \
+            -var="db_password=${{ secrets.RDS_PASSWORD }}" \
+            -var="ssh_cidr=${{ secrets.SSH_ALLOWED_CIDR }}"

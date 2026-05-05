@@ -16,7 +16,7 @@ resource "aws_db_instance" "mysql" {
   instance_class       = "db.t3.micro"
   db_name              = "stocklive_db"
   username             = "admin"
-  password             = "Password123!" # Should use Secrets Manager in prod
+  password             = var.db_password # Sensitive variable passed via CLI/CI/CD
   parameter_group_name = "default.mysql8.0"
   db_subnet_group_name = aws_db_subnet_group.db_subnets.name
   vpc_security_group_ids = [aws_security_group.db_sg.id]

@@ -34,7 +34,7 @@ resource "aws_security_group" "app_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Should be restricted in production
+    cidr_blocks = [var.ssh_cidr] # Restricted to authorized CIDR only
   }
 
   egress {
