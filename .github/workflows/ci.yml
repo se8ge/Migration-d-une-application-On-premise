@@ -108,25 +108,33 @@ jobs:
             -var="db_password=${{ secrets.RDS_PASSWORD }}" \
             -var="ssh_cidr=${{ secrets.SSH_ALLOWED_CIDR }}"
 
-      - name: Get EC2 Public IP
-        id: get-ip
+      - name: Get EC2 and DB Info
+        id: vars
         run: |
           echo "EC2_IP=$(terraform -chdir=terraform output -raw app_server_public_ip)" >> $GITHUB_OUTPUT
+          echo "DB_ENDPOINT=$(terraform -chdir=terraform output -raw db_endpoint)" >> $GITHUB_OUTPUT
 
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ steps.get-ip.outputs.EC2_IP }}
+          host: ${{ steps.vars.outputs.EC2_IP }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             mkdir -p ~/app
             cd ~/app
-            # On clone le repo si besoin ou on tire les changements
             if [ ! -d ".git" ]; then
               git clone https://github.com/${{ github.repository }}.git .
             else
-              git pull origin main
+              git fetch origin main
+              git reset --hard origin/main
             fi
-            # Lancement de l'application avec Docker Compose
+            
+            # Création du fichier .env
+            echo "DATABASE_URL=mysql+pymysql://admin:${{ secrets.RDS_PASSWORD }}@${{ steps.vars.outputs.DB_ENDPOINT }}/inventory" > .env
+            echo "MYSQL_ROOT_PASSWORD=${{ secrets.RDS_PASSWORD }}" >> .env
+            echo "MYSQL_PASSWORD=${{ secrets.RDS_PASSWORD }}" >> .env
+            echo "MYSQL_DATABASE=inventory" >> .env
+            echo "MYSQL_USER=admin" >> .env
+            
             docker-compose up -d --build
