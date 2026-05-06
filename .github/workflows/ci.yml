@@ -137,4 +137,4 @@ jobs:
             echo "MYSQL_DATABASE=inventory" >> .env
             echo "MYSQL_USER=admin" >> .env
             
-            docker-compose up -d --build
+            docker compose up -d --build

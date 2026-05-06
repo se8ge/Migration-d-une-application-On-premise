@@ -12,8 +12,9 @@ resource "aws_instance" "app_server" {
 
   user_data = <<-EOF
               #!/bin/bash
-              apt-get update
-              apt-get install -y docker.io docker-compose
+              # Installation de la dernière version officielle de Docker et Docker Compose v2
+              curl -fsSL https://get.docker.com -o get-docker.sh
+              sh get-docker.sh
               systemctl start docker
               systemctl enable docker
               # Ajouter l'utilisateur par défaut au groupe docker
