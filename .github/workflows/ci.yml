@@ -148,3 +148,7 @@ jobs:
             
             # Lancement de l'application
             sudo /usr/local/bin/docker-compose up -d --build
+            
+            # Création du compte administrateur par défaut dans la nouvelle base RDS
+            sleep 10
+            sudo /usr/local/bin/docker-compose exec -T api python scripts/admin/create_user_serge.py
