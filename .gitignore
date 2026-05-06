@@ -15,3 +15,8 @@ venv/
 # IDEs
 .vscode/
 .idea/
+
+# Security
+stocklive_key
+stocklive_key.pub
+generate_keys.py
