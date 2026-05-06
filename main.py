@@ -29,6 +29,10 @@ Instrumentator().instrument(app).expose(app)
 def read_root():
     return {"message": "Bienvenue dans l'API Multi Store (Python + POO)"}
 
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
 @app.get("/users/{user_id}", response_model=schemas.UserResponse)
 def read_user(user_id: int, db: Session = Depends(database.get_db)):
     db_user = crud.user_crud.get_user(db, user_id=user_id)
