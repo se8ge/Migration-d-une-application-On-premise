@@ -134,10 +134,10 @@ jobs:
             fi
             
             # Création du fichier .env
-            echo "DATABASE_URL=mysql+pymysql://admin:${{ secrets.RDS_PASSWORD }}@${{ steps.vars.outputs.DB_ENDPOINT }}/inventory" > .env
+            echo "DATABASE_URL=mysql+pymysql://admin:${{ secrets.RDS_PASSWORD }}@${{ steps.vars.outputs.DB_ENDPOINT }}/stocklive_db" > .env
             echo "MYSQL_ROOT_PASSWORD=${{ secrets.RDS_PASSWORD }}" >> .env
             echo "MYSQL_PASSWORD=${{ secrets.RDS_PASSWORD }}" >> .env
-            echo "MYSQL_DATABASE=inventory" >> .env
+            echo "MYSQL_DATABASE=stocklive_db" >> .env
             echo "MYSQL_USER=admin" >> .env
             # Installation forcée de Docker Compose v2 pour garantir la compatibilité
             sudo curl -sSL "https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
