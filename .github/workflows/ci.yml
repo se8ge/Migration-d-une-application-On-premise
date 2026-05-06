@@ -139,5 +139,9 @@ jobs:
             echo "MYSQL_PASSWORD=${{ secrets.RDS_PASSWORD }}" >> .env
             echo "MYSQL_DATABASE=inventory" >> .env
             echo "MYSQL_USER=admin" >> .env
+            # Installation forcée de Docker Compose v2 pour garantir la compatibilité
+            sudo curl -sSL "https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
             
-            docker compose up -d --build
+            # Lancement de l'application
+            sudo /usr/local/bin/docker-compose up -d --build
