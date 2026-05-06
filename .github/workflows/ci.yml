@@ -108,6 +108,9 @@ jobs:
             -var="db_password=${{ secrets.RDS_PASSWORD }}" \
             -var="ssh_cidr=${{ secrets.SSH_ALLOWED_CIDR }}"
 
+      - name: Wait for EC2 to boot
+        run: sleep 60
+
       - name: Get EC2 and DB Info
         id: vars
         run: |
