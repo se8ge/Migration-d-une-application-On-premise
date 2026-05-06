@@ -94,14 +94,39 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-3
 
-      - name: Set up Terraform
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
 
       - name: Terraform Init
         run: terraform -chdir=terraform init
 
-      - name: Terraform Plan/Apply
+      - name: Terraform Apply (ensure infra is up)
         run: |
           terraform -chdir=terraform apply -auto-approve \
             -var="db_password=${{ secrets.RDS_PASSWORD }}" \
             -var="ssh_cidr=${{ secrets.SSH_ALLOWED_CIDR }}"
+
+      - name: Get EC2 Public IP
+        id: get-ip
+        run: |
+          echo "EC2_IP=$(terraform -chdir=terraform output -raw app_server_public_ip)" >> $GITHUB_OUTPUT
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ steps.get-ip.outputs.EC2_IP }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            mkdir -p ~/app
+            cd ~/app
+            # On clone le repo si besoin ou on tire les changements
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/${{ github.repository }}.git .
+            else
+              git pull origin main
+            fi
+            # Lancement de l'application avec Docker Compose
+            docker-compose up -d --build
