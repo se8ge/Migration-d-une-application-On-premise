@@ -21,7 +21,12 @@ def create_user_serge():
     # Vérifier le magasin
     store = db.query(models.Store).first()
     if not store:
-        store = models.Store(store_name="Magasin Principal", store_code="M01", isactive=True)
+        store = models.Store(
+            store_name="Magasin Principal", 
+            store_code="M01", 
+            isactive=True,
+            createby="system" # Champ obligatoire
+        )
         db.add(store)
         db.commit()
         db.refresh(store)
