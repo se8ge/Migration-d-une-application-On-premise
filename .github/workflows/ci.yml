@@ -108,14 +108,26 @@ jobs:
             -var="db_password=${{ secrets.RDS_PASSWORD }}" \
             -var="ssh_cidr=${{ secrets.SSH_ALLOWED_CIDR }}"
 
-      - name: Wait for EC2 to boot
-        run: sleep 60
-
       - name: Get EC2 and DB Info
         id: vars
         run: |
           echo "INSTANCE_ID=$(terraform -chdir=terraform output -raw app_server_instance_id)" >> $GITHUB_OUTPUT
           echo "DB_ENDPOINT=$(terraform -chdir=terraform output -raw db_endpoint)" >> $GITHUB_OUTPUT
+
+      - name: Wait for SSM to be ready
+        run: |
+          echo "Waiting for instance ${{ steps.vars.outputs.INSTANCE_ID }} to register in SSM..."
+          for i in {1..20}; do
+            STATE=$(aws ssm describe-instance-information --filters "Key=InstanceIds,Values=${{ steps.vars.outputs.INSTANCE_ID }}" --query "InstanceInformationList[0].PingStatus" --output text --region eu-west-3)
+            if [ "$STATE" == "Online" ]; then
+              echo "Instance is Online in SSM!"
+              exit 0
+            fi
+            echo "Current state: $STATE. Waiting 15s..."
+            sleep 15
+          done
+          echo "Timeout waiting for SSM"
+          exit 1
 
       - name: Deploy to EC2 via AWS SSM
         run: |
