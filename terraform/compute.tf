@@ -13,22 +13,21 @@ resource "aws_instance" "app_server" {
 
   user_data = <<-EOF
               #!/bin/bash
-              # Installation de l'agent SSM (au cas où il ne serait pas présent)
-              if ! systemctl is-active --quiet amazon-ssm-agent; then
-                sudo snap install amazon-ssm-agent --classic
-                sudo systemctl enable amazon-ssm-agent
-                sudo systemctl start amazon-ssm-agent
-              fi
+              # S'assurer que l'agent SSM est démarré (déjà présent sur Ubuntu 22.04)
+              systemctl enable amazon-ssm-agent
+              systemctl start amazon-ssm-agent
 
-              # Installation de Docker
-              curl -fsSL https://get.docker.com -o get-docker.sh
-              sh get-docker.sh
-              systemctl start docker
-              systemctl enable docker
-              usermod -aG docker ubuntu
+              # Installation de Docker en arrière-plan pour ne pas bloquer le boot
+              (
+                curl -fsSL https://get.docker.com -o get-docker.sh
+                sh get-docker.sh
+                systemctl start docker
+                systemctl enable docker
+                usermod -aG docker ubuntu
+              ) &
               EOF
 
   tags = {
-    Name = "${var.project_name}-app-server-v2"
+    Name = "${var.project_name}-app-server-v3"
   }
 }

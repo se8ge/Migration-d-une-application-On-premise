@@ -118,16 +118,20 @@ jobs:
       - name: Wait for SSM to be ready
         run: |
           echo "Waiting for instance ${{ steps.vars.outputs.INSTANCE_ID }} to register in SSM..."
-          for i in {1..20}; do
+          echo "Instances currently managed by SSM:"
+          aws ssm describe-instance-information --query "InstanceInformationList[*].{ID:InstanceId,Status:PingStatus,Name:ComputerName}" --output table --region eu-west-3
+          
+          for i in {1..30}; do
             STATE=$(aws ssm describe-instance-information --filters "Key=InstanceIds,Values=${{ steps.vars.outputs.INSTANCE_ID }}" --query "InstanceInformationList[0].PingStatus" --output text --region eu-west-3)
             if [ "$STATE" == "Online" ]; then
               echo "Instance is Online in SSM!"
               exit 0
             fi
-            echo "Current state: $STATE. Waiting 15s..."
+            echo "Attempt $i: Current state for ${{ steps.vars.outputs.INSTANCE_ID }} is '$STATE'. Waiting 15s..."
             sleep 15
           done
-          echo "Timeout waiting for SSM"
+          echo "Timeout waiting for SSM. Final check of all instances:"
+          aws ssm describe-instance-information --query "InstanceInformationList[*].{ID:InstanceId,Status:PingStatus}" --output table --region eu-west-3
           exit 1
 
       - name: Deploy to EC2 via AWS SSM

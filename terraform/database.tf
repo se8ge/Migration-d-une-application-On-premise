@@ -10,7 +10,7 @@ resource "aws_db_subnet_group" "db_subnets" {
 resource "random_password" "db_password" {
   length           = 16
   special          = true
-  override_special = "!#$%&*()-_=+[]{}<>:?"
+  override_special = "_%-" # Caractères sûrs pour une URL de connexion
 }
 
 resource "aws_db_instance" "mysql" {
