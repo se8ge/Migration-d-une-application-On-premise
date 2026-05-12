@@ -154,7 +154,7 @@ jobs:
               "sudo chmod +x /usr/local/bin/docker-compose",
               "sudo /usr/local/bin/docker-compose down || true",
               "sudo /usr/local/bin/docker-compose up -d --build",
-              "sleep 20",
-              "sudo /usr/local/bin/docker-compose exec -T api python scripts/admin/create_user_serge.py"
+              "echo 'Attente du démarrage de l'application (max 2 min)...'",
+              "for i in {1..12}; do if sudo /usr/local/bin/docker-compose exec -T api python scripts/admin/create_user_serge.py; then echo 'COMPTE CRÉÉ AVEC SUCCÈS !'; break; fi; echo 'Nouvelle tentative dans 10s...'; sleep 10; done"
             ]' \
             --region eu-west-3
