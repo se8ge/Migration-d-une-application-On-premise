@@ -13,16 +13,22 @@ resource "aws_instance" "app_server" {
 
   user_data = <<-EOF
               #!/bin/bash
-              # Installation de la dernière version officielle de Docker et Docker Compose v2
+              # Installation de l'agent SSM (au cas où il ne serait pas présent)
+              if ! systemctl is-active --quiet amazon-ssm-agent; then
+                sudo snap install amazon-ssm-agent --classic
+                sudo systemctl enable amazon-ssm-agent
+                sudo systemctl start amazon-ssm-agent
+              fi
+
+              # Installation de Docker
               curl -fsSL https://get.docker.com -o get-docker.sh
               sh get-docker.sh
               systemctl start docker
               systemctl enable docker
-              # Ajouter l'utilisateur par défaut au groupe docker
               usermod -aG docker ubuntu
               EOF
 
   tags = {
-    Name = "${var.project_name}-app-server"
+    Name = "${var.project_name}-app-server-v2"
   }
 }
