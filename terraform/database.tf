@@ -7,6 +7,12 @@ resource "aws_db_subnet_group" "db_subnets" {
   }
 }
 
+resource "random_password" "db_password" {
+  length           = 16
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
 resource "aws_db_instance" "mysql" {
   identifier           = "${var.project_name}-db"
   allocated_storage    = 20
@@ -16,7 +22,7 @@ resource "aws_db_instance" "mysql" {
   instance_class       = "db.t3.micro"
   db_name              = "stocklive_db"
   username             = "admin"
-  password             = var.db_password # Sensitive variable passed via CLI/CI/CD
+  password             = random_password.db_password.result
   parameter_group_name = "default.mysql8.0"
   db_subnet_group_name = aws_db_subnet_group.db_subnets.name
   vpc_security_group_ids = [aws_security_group.db_sg.id]

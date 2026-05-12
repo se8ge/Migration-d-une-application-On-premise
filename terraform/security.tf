@@ -34,7 +34,7 @@ resource "aws_security_group" "app_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Autorise GitHub Actions à se connecter
+    cidr_blocks = [var.ssh_cidr] # Autorise GitHub Actions ou une IP spécifique
   }
 
   egress {
