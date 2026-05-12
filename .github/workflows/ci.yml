@@ -114,41 +114,30 @@ jobs:
       - name: Get EC2 and DB Info
         id: vars
         run: |
-          echo "EC2_IP=$(terraform -chdir=terraform output -raw app_server_public_ip)" >> $GITHUB_OUTPUT
+          echo "INSTANCE_ID=$(terraform -chdir=terraform output -raw app_server_instance_id)" >> $GITHUB_OUTPUT
           echo "DB_ENDPOINT=$(terraform -chdir=terraform output -raw db_endpoint)" >> $GITHUB_OUTPUT
 
-      - name: Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ steps.vars.outputs.EC2_IP }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            mkdir -p ~/app
-            cd ~/app
-            if [ ! -d ".git" ]; then
-              git clone https://github.com/${{ github.repository }}.git .
-            else
-              git fetch origin main
-              git reset --hard origin/main
-            fi
-            
-            # Création du fichier .env
-            echo "DATABASE_URL=mysql+pymysql://admin:${{ secrets.RDS_PASSWORD }}@${{ steps.vars.outputs.DB_ENDPOINT }}/stocklive_db" > .env
-            echo "MYSQL_ROOT_PASSWORD=${{ secrets.RDS_PASSWORD }}" >> .env
-            echo "MYSQL_PASSWORD=${{ secrets.RDS_PASSWORD }}" >> .env
-            echo "MYSQL_DATABASE=stocklive_db" >> .env
-            echo "MYSQL_USER=admin" >> .env
-            # Installation forcée de Docker Compose v2 pour garantir la compatibilité
-            sudo curl -sSL "https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
-            
-            # Nettoyage des anciens conteneurs bloqués
-            sudo /usr/local/bin/docker-compose down || true
-            
-            # Lancement de l'application
-            sudo /usr/local/bin/docker-compose up -d --build
-            
-            # Création du compte administrateur par défaut dans la nouvelle base RDS
-            sleep 10
-            sudo /usr/local/bin/docker-compose exec -T api python scripts/admin/create_user_serge.py
+      - name: Deploy to EC2 via AWS SSM
+        run: |
+          aws ssm send-command \
+            --instance-ids "${{ steps.vars.outputs.INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploying StockLive via SSM" \
+            --parameters 'commands=[
+              "mkdir -p /home/ubuntu/app",
+              "cd /home/ubuntu/app",
+              "if [ ! -d \".git\" ]; then sudo git clone https://github.com/${{ github.repository }}.git .; else sudo git fetch origin main && sudo git reset --hard origin/main; fi",
+              "sudo chown -R ubuntu:ubuntu /home/ubuntu/app",
+              "echo \"DATABASE_URL=mysql+pymysql://admin:${{ secrets.RDS_PASSWORD }}@${{ steps.vars.outputs.DB_ENDPOINT }}/stocklive_db\" > .env",
+              "echo \"MYSQL_ROOT_PASSWORD=${{ secrets.RDS_PASSWORD }}\" >> .env",
+              "echo \"MYSQL_PASSWORD=${{ secrets.RDS_PASSWORD }}\" >> .env",
+              "echo \"MYSQL_DATABASE=stocklive_db\" >> .env",
+              "echo \"MYSQL_USER=admin\" >> .env",
+              "sudo curl -sSL \"https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose",
+              "sudo chmod +x /usr/local/bin/docker-compose",
+              "sudo /usr/local/bin/docker-compose down || true",
+              "sudo /usr/local/bin/docker-compose up -d --build",
+              "sleep 10",
+              "sudo /usr/local/bin/docker-compose exec -T api python scripts/admin/create_user_serge.py"
+            ]' \
+            --region eu-west-3

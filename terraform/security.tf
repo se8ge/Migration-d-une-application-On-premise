@@ -30,12 +30,8 @@ resource "aws_security_group" "app_sg" {
     security_groups = [aws_security_group.alb_sg.id]
   }
 
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.ssh_cidr] # Autorise GitHub Actions ou une IP spécifique
-  }
+  # Ingress port 22 supprimé (Utilisation de AWS SSM pour plus de sécurité)
+
 
   egress {
     from_port   = 0
