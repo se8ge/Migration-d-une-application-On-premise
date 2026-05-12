@@ -113,6 +113,7 @@ jobs:
         run: |
           echo "INSTANCE_ID=$(terraform -chdir=terraform output -raw app_server_instance_id)" >> $GITHUB_OUTPUT
           echo "DB_ENDPOINT=$(terraform -chdir=terraform output -raw db_endpoint)" >> $GITHUB_OUTPUT
+          echo "RDS_PASSWORD=$(terraform -chdir=terraform output -raw rds_password)" >> $GITHUB_OUTPUT
 
       - name: Wait for SSM to be ready
         run: |
@@ -140,9 +141,9 @@ jobs:
               "cd /home/ubuntu/app",
               "if [ ! -d \".git\" ]; then sudo git clone https://github.com/${{ github.repository }}.git .; else sudo git fetch origin main && sudo git reset --hard origin/main; fi",
               "sudo chown -R ubuntu:ubuntu /home/ubuntu/app",
-              "echo \"DATABASE_URL=mysql+pymysql://admin:${{ secrets.RDS_PASSWORD }}@${{ steps.vars.outputs.DB_ENDPOINT }}/stocklive_db\" > .env",
-              "echo \"MYSQL_ROOT_PASSWORD=${{ secrets.RDS_PASSWORD }}\" >> .env",
-              "echo \"MYSQL_PASSWORD=${{ secrets.RDS_PASSWORD }}\" >> .env",
+              "echo \"DATABASE_URL=mysql+pymysql://admin:${{ steps.vars.outputs.RDS_PASSWORD }}@${{ steps.vars.outputs.DB_ENDPOINT }}/stocklive_db\" > .env",
+              "echo \"MYSQL_ROOT_PASSWORD=${{ steps.vars.outputs.RDS_PASSWORD }}\" >> .env",
+              "echo \"MYSQL_PASSWORD=${{ steps.vars.outputs.RDS_PASSWORD }}\" >> .env",
               "echo \"MYSQL_DATABASE=stocklive_db\" >> .env",
               "echo \"MYSQL_USER=admin\" >> .env",
               "sudo curl -sSL \"https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose",
