@@ -28,6 +28,6 @@ resource "aws_instance" "app_server" {
               EOF
 
   tags = {
-    Name = "${var.project_name}-app-server-v3"
+    Name = "${var.project_name}-app-server-v4"
   }
 }
