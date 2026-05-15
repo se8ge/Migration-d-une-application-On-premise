@@ -14,7 +14,7 @@ resource "random_password" "db_password" {
 }
 
 resource "aws_db_instance" "mysql" {
-  identifier           = "${var.project_name}-db"
+  identifier           = "${var.project_name}-db-${random_id.infra_suffix.hex}"
   allocated_storage    = 20
   storage_type         = "gp2"
   engine               = "mysql"
