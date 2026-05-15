@@ -1,5 +1,5 @@
 resource "aws_db_subnet_group" "db_subnets" {
-  name       = "${var.project_name}-db-subnet-group"
+  name       = "stocklive-db-subnet-group-${random_id.infra_suffix.hex}"
   subnet_ids = [aws_subnet.private_a.id, aws_subnet.private_b.id]
 
   tags = {
