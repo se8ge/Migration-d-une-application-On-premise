@@ -1,30 +1,30 @@
+resource "random_id" "infra_suffix" {
+  byte_length = 2
+}
+
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
   enable_dns_support   = true
-
+  enable_dns_hostnames = true
   tags = {
-    Name = "${var.project_name}-vpc"
+    Name = "${var.project_name}-vpc-${random_id.infra_suffix.hex}"
   }
 }
 
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.main.id
-
   tags = {
-    Name = "${var.project_name}-igw"
+    Name = "${var.project_name}-igw-${random_id.infra_suffix.hex}"
   }
 }
 
-# Public Subnets (for ALB and EC2)
 resource "aws_subnet" "public_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "eu-west-3a"
   map_public_ip_on_launch = true
-
   tags = {
-    Name = "${var.project_name}-public-a"
+    Name = "${var.project_name}-public-a-${random_id.infra_suffix.hex}"
   }
 }
 
@@ -33,20 +33,17 @@ resource "aws_subnet" "public_b" {
   cidr_block        = "10.0.2.0/24"
   availability_zone = "eu-west-3b"
   map_public_ip_on_launch = true
-
   tags = {
-    Name = "${var.project_name}-public-b"
+    Name = "${var.project_name}-public-b-${random_id.infra_suffix.hex}"
   }
 }
 
-# Private Subnets (for RDS)
 resource "aws_subnet" "private_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.3.0/24"
   availability_zone = "eu-west-3a"
-
   tags = {
-    Name = "${var.project_name}-private-a"
+    Name = "${var.project_name}-private-a-${random_id.infra_suffix.hex}"
   }
 }
 
@@ -54,9 +51,8 @@ resource "aws_subnet" "private_b" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.4.0/24"
   availability_zone = "eu-west-3b"
-
   tags = {
-    Name = "${var.project_name}-private-b"
+    Name = "${var.project_name}-private-b-${random_id.infra_suffix.hex}"
   }
 }
 

@@ -32,6 +32,6 @@ resource "aws_instance" "app_server" {
               EOF
 
   tags = {
-    Name = "${var.project_name}-app-server-${random_id.server_suffix.hex}"
+    Name = "${var.project_name}-app-server-${random_id.infra_suffix.hex}"
   }
 }
