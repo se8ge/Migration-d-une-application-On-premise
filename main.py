@@ -99,8 +99,10 @@ def delete_product(product_id: int, db: Session = Depends(database.get_db)):
 @app.post("/login", response_model=schemas.TokenResponse)
 def login(login_data: schemas.UserLogin, db: Session = Depends(database.get_db)):
     user = crud.user_crud.get_user_by_email(db, login_data.email)
-    if not user or not crud.pwd_context.verify(login_data.password, user.password):
-        raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
+    if not user:
+        raise HTTPException(status_code=401, detail="Utilisateur non trouvé dans la base")
+    if not crud.pwd_context.verify(login_data.password, user.password):
+        raise HTTPException(status_code=401, detail="Mot de passe incorrect pour cet email")
     
     return {
         "access_token": "dummy-token-" + str(user.id),

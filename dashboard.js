@@ -45,8 +45,9 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             document.getElementById('login-overlay').style.display = 'none';
             refreshStats();
         } else {
+            const errData = await res.json();
             errorEl.style.display = 'block';
-            errorEl.innerText = "Identifiants incorrects";
+            errorEl.innerText = errData.detail || "Identifiants incorrects";
         }
     } catch (err) {
         errorEl.style.display = 'block';
