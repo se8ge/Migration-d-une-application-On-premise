@@ -152,8 +152,10 @@ jobs:
               "echo \"MYSQL_USER=admin\" >> .env",
               "sudo curl -sSL \"https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose",
               "sudo chmod +x /usr/local/bin/docker-compose",
-              "sudo /usr/local/bin/docker-compose down || true",
-              "sudo /usr/local/bin/docker-compose up -d --build",
-              "sudo /usr/local/bin/docker-compose exec -T api python scripts/admin/create_user_serge.py || (sleep 20 && sudo /usr/local/bin/docker-compose exec -T api python scripts/admin/create_user_serge.py)"
+              "sudo /usr/local/bin/docker-compose down --remove-orphans",
+              "sudo docker system prune -f",
+              "sudo /usr/local/bin/docker-compose up -d --build --force-recreate",
+              "sleep 20",
+              "sudo /usr/local/bin/docker-compose exec -T api python scripts/admin/create_user_serge.py"
             ]' \
             --region eu-west-3
