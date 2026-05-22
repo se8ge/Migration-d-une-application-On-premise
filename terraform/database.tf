@@ -5,6 +5,10 @@ resource "aws_db_subnet_group" "db_subnets" {
   tags = {
     Name = "${var.project_name}-db-subnet-group"
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "random_password" "db_password" {
