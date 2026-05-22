@@ -1,4 +1,3 @@
-/*
 terraform {
   backend "s3" {
     bucket         = "stocklive-terraform-state"
@@ -8,4 +7,3 @@ terraform {
     encrypt        = true
   }
 }
-*/

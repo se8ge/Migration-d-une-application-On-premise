@@ -153,8 +153,11 @@ jobs:
               "sudo curl -sSL \"https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose",
               "sudo chmod +x /usr/local/bin/docker-compose",
               "sudo /usr/local/bin/docker-compose down --remove-orphans",
+              "sudo /usr/local/bin/docker-compose -f monitoring/docker-compose.yml down --remove-orphans",
               "sudo docker system prune -f",
+              "if [ -n \"${{ secrets.DISCORD_WEBHOOK_URL }}\" ]; then sudo sed -i 's|YOUR_DISCORD_WEBHOOK_URL_HERE|${{ secrets.DISCORD_WEBHOOK_URL }}|g' monitoring/alertmanager.yml; fi",
               "sudo /usr/local/bin/docker-compose up -d --build --force-recreate",
+              "sudo /usr/local/bin/docker-compose -f monitoring/docker-compose.yml up -d --build --force-recreate",
               "sleep 20",
               "sudo /usr/local/bin/docker-compose exec -T api python scripts/admin/create_user_serge.py"
             ]' \
