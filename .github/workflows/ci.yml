@@ -83,7 +83,7 @@ jobs:
   deploy-aws:
     name: Deploy to AWS (CD)
     needs: build-docker
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -119,47 +119,114 @@ jobs:
       - name: Wait for SSM to be ready
         run: |
           echo "Waiting for instance ${{ steps.vars.outputs.INSTANCE_ID }} to register in SSM..."
-          echo "Instances currently managed by SSM:"
-          aws ssm describe-instance-information --query "InstanceInformationList[*].{ID:InstanceId,Status:PingStatus,Name:ComputerName}" --output table --region eu-west-3
-          
           for i in {1..30}; do
             STATE=$(aws ssm describe-instance-information --filters "Key=InstanceIds,Values=${{ steps.vars.outputs.INSTANCE_ID }}" --query "InstanceInformationList[0].PingStatus" --output text --region eu-west-3)
             if [ "$STATE" == "Online" ]; then
               echo "Instance is Online in SSM!"
               exit 0
             fi
-            echo "Attempt $i: Current state for ${{ steps.vars.outputs.INSTANCE_ID }} is '$STATE'. Waiting 15s..."
+            echo "Attempt $i: state='$STATE'. Waiting 15s..."
             sleep 15
           done
-          echo "Timeout waiting for SSM. Final check of all instances:"
-          aws ssm describe-instance-information --query "InstanceInformationList[*].{ID:InstanceId,Status:PingStatus}" --output table --region eu-west-3
+          echo "Timeout waiting for SSM."
           exit 1
 
       - name: Deploy to EC2 via AWS SSM
+        id: deploy
         run: |
-          aws ssm send-command \
+          DEPLOY_CMD=$(cat <<'SSMEOF'
+          set -e
+          cd /home/ubuntu/app
+          if [ ! -d ".git" ]; then
+            sudo git clone https://github.com/REPO_PLACEHOLDER.git .
+          else
+            sudo git fetch origin main && sudo git reset --hard origin/main
+          fi
+          sudo chown -R ubuntu:ubuntu /home/ubuntu/app
+          cat > .env <<ENVEOF
+          DATABASE_URL=mysql+pymysql://admin:DB_PASSWORD_PLACEHOLDER@DB_ENDPOINT_PLACEHOLDER/stocklive_db
+          MYSQL_ROOT_PASSWORD=DB_PASSWORD_PLACEHOLDER
+          MYSQL_PASSWORD=DB_PASSWORD_PLACEHOLDER
+          MYSQL_DATABASE=stocklive_db
+          MYSQL_USER=admin
+          ENVEOF
+          sudo curl -fsSL "https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          sudo /usr/local/bin/docker-compose down --remove-orphans || true
+          sudo /usr/local/bin/docker-compose -f monitoring/docker-compose.yml down --remove-orphans || true
+          sudo docker system prune -f
+          if [ -n "DISCORD_WEBHOOK_PLACEHOLDER" ]; then
+            sudo sed -i "s|YOUR_DISCORD_WEBHOOK_URL_HERE|DISCORD_WEBHOOK_PLACEHOLDER|g" monitoring/alertmanager.yml
+          fi
+          sudo /usr/local/bin/docker-compose up -d --build --force-recreate
+          sudo /usr/local/bin/docker-compose -f monitoring/docker-compose.yml up -d --build --force-recreate || true
+          sleep 30
+          sudo /usr/local/bin/docker-compose exec -T api python scripts/admin/create_user_serge.py || echo "User creation attempted"
+          SSMEOF
+          )
+
+          # Substitute placeholders
+          DEPLOY_CMD="${DEPLOY_CMD//REPO_PLACEHOLDER/${{ github.repository }}}"
+          DEPLOY_CMD="${DEPLOY_CMD//DB_PASSWORD_PLACEHOLDER/${{ steps.vars.outputs.RDS_PASSWORD }}}"
+          DEPLOY_CMD="${DEPLOY_CMD//DB_ENDPOINT_PLACEHOLDER/${{ steps.vars.outputs.DB_ENDPOINT }}}"
+          DEPLOY_CMD="${DEPLOY_CMD//DISCORD_WEBHOOK_PLACEHOLDER/${{ secrets.DISCORD_WEBHOOK_URL }}}"
+
+          COMMAND_ID=$(aws ssm send-command \
             --instance-ids "${{ steps.vars.outputs.INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
-            --comment "Deploying StockLive via SSM" \
-            --parameters 'commands=[
-              "mkdir -p /home/ubuntu/app",
-              "cd /home/ubuntu/app",
-              "if [ ! -d \".git\" ]; then sudo git clone https://github.com/${{ github.repository }}.git .; else sudo git fetch origin main && sudo git reset --hard origin/main; fi",
-              "sudo chown -R ubuntu:ubuntu /home/ubuntu/app",
-              "echo \"DATABASE_URL=mysql+pymysql://admin:${{ steps.vars.outputs.RDS_PASSWORD }}@${{ steps.vars.outputs.DB_ENDPOINT }}/stocklive_db\" > .env",
-              "echo \"MYSQL_ROOT_PASSWORD=${{ steps.vars.outputs.RDS_PASSWORD }}\" >> .env",
-              "echo \"MYSQL_PASSWORD=${{ steps.vars.outputs.RDS_PASSWORD }}\" >> .env",
-              "echo \"MYSQL_DATABASE=stocklive_db\" >> .env",
-              "echo \"MYSQL_USER=admin\" >> .env",
-              "sudo curl -sSL \"https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose",
-              "sudo chmod +x /usr/local/bin/docker-compose",
-              "sudo /usr/local/bin/docker-compose down --remove-orphans",
-              "sudo /usr/local/bin/docker-compose -f monitoring/docker-compose.yml down --remove-orphans",
-              "sudo docker system prune -f",
-              "if [ -n \"${{ secrets.DISCORD_WEBHOOK_URL }}\" ]; then sudo sed -i \"s|YOUR_DISCORD_WEBHOOK_URL_HERE|${{ secrets.DISCORD_WEBHOOK_URL }}|g\" monitoring/alertmanager.yml; fi",
-              "sudo /usr/local/bin/docker-compose up -d --build --force-recreate",
-              "sudo /usr/local/bin/docker-compose -f monitoring/docker-compose.yml up -d --build --force-recreate",
-              "sleep 20",
-              "sudo /usr/local/bin/docker-compose exec -T api python scripts/admin/create_user_serge.py"
-            ]' \
-            --region eu-west-3
+            --comment "Deploying StockLive" \
+            --parameters commands="$DEPLOY_CMD" \
+            --region eu-west-3 \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "SSM Command ID: $COMMAND_ID"
+          echo "COMMAND_ID=$COMMAND_ID" >> $GITHUB_OUTPUT
+
+          # Wait for command to complete
+          for i in {1..20}; do
+            STATUS=$(aws ssm get-command-invocation \
+              --command-id "$COMMAND_ID" \
+              --instance-id "${{ steps.vars.outputs.INSTANCE_ID }}" \
+              --region eu-west-3 \
+              --query "Status" --output text 2>/dev/null || echo "Pending")
+            echo "Attempt $i: SSM command status = $STATUS"
+            if [ "$STATUS" == "Success" ]; then
+              echo "Deployment command succeeded!"
+              break
+            elif [ "$STATUS" == "Failed" ] || [ "$STATUS" == "TimedOut" ] || [ "$STATUS" == "Cancelled" ]; then
+              echo "Deployment command FAILED with status: $STATUS"
+              aws ssm get-command-invocation \
+                --command-id "$COMMAND_ID" \
+                --instance-id "${{ steps.vars.outputs.INSTANCE_ID }}" \
+                --region eu-west-3 \
+                --query "StandardErrorContent" --output text
+              exit 1
+            fi
+            sleep 15
+          done
+
+      - name: Check Container Status (Diagnostics)
+        if: always()
+        run: |
+          DIAG_ID=$(aws ssm send-command \
+            --instance-ids "${{ steps.vars.outputs.INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Diagnostics" \
+            --parameters commands=["sudo docker ps -a","sudo /usr/local/bin/docker-compose -f /home/ubuntu/app/docker-compose.yml logs --tail=50 api"] \
+            --region eu-west-3 \
+            --query "Command.CommandId" \
+            --output text)
+          sleep 20
+          echo "=== Container Status ==="
+          aws ssm get-command-invocation \
+            --command-id "$DIAG_ID" \
+            --instance-id "${{ steps.vars.outputs.INSTANCE_ID }}" \
+            --region eu-west-3 \
+            --query "StandardOutputContent" --output text || true
+          echo "=== Container Errors ==="
+          aws ssm get-command-invocation \
+            --command-id "$DIAG_ID" \
+            --instance-id "${{ steps.vars.outputs.INSTANCE_ID }}" \
+            --region eu-west-3 \
+            --query "StandardErrorContent" --output text || true
