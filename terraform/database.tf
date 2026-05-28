@@ -1,5 +1,5 @@
 resource "aws_db_subnet_group" "db_subnets" {
-  name       = "stocklive-db-subnet-group-${random_id.infra_suffix.hex}"
+  name       = "stocklive-db-subnet-group"
   subnet_ids = [aws_subnet.private_a.id, aws_subnet.private_b.id]
 
   tags = {
@@ -18,7 +18,7 @@ resource "random_password" "db_password" {
 }
 
 resource "aws_db_instance" "mysql" {
-  identifier           = "${var.project_name}-db-${random_id.infra_suffix.hex}"
+  identifier           = "${var.project_name}-db"
   allocated_storage    = 20
   storage_type         = "gp2"
   engine               = "mysql"
