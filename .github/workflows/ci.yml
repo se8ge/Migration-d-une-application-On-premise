@@ -116,10 +116,60 @@ jobs:
           echo "DB_ENDPOINT=$(terraform -chdir=terraform output -raw db_endpoint)" >> $GITHUB_OUTPUT
           echo "RDS_PASSWORD=$(terraform -chdir=terraform output -raw rds_password)" >> $GITHUB_OUTPUT
 
+      - name: Ensure EC2 instance is running and SSM is healthy
+        run: |
+          INSTANCE_ID="${{ steps.vars.outputs.INSTANCE_ID }}"
+          echo "Checking EC2 instance state for $INSTANCE_ID..."
+          
+          INSTANCE_STATE=$(aws ec2 describe-instances \
+            --instance-ids "$INSTANCE_ID" \
+            --query "Reservations[0].Instances[0].State.Name" \
+            --output text --region eu-west-3)
+          echo "Current instance state: $INSTANCE_STATE"
+          
+          if [ "$INSTANCE_STATE" == "stopped" ]; then
+            echo "Instance is stopped. Starting it..."
+            aws ec2 start-instances --instance-ids "$INSTANCE_ID" --region eu-west-3
+            aws ec2 wait instance-running --instance-ids "$INSTANCE_ID" --region eu-west-3
+            echo "Instance started successfully."
+          elif [ "$INSTANCE_STATE" == "stopping" ]; then
+            echo "Instance is stopping. Waiting for it to stop..."
+            aws ec2 wait instance-stopped --instance-ids "$INSTANCE_ID" --region eu-west-3
+            echo "Starting instance..."
+            aws ec2 start-instances --instance-ids "$INSTANCE_ID" --region eu-west-3
+            aws ec2 wait instance-running --instance-ids "$INSTANCE_ID" --region eu-west-3
+          elif [ "$INSTANCE_STATE" == "terminated" ] || [ "$INSTANCE_STATE" == "shutting-down" ]; then
+            echo "ERROR: Instance is terminated or shutting down! Terraform needs to recreate it."
+            exit 1
+          fi
+
+          # Now the instance is running. Check SSM status.
+          echo "Checking SSM PingStatus..."
+          SSM_STATUS=$(aws ssm describe-instance-information \
+            --filters "Key=InstanceIds,Values=$INSTANCE_ID" \
+            --query "InstanceInformationList[0].PingStatus" \
+            --output text --region eu-west-3 2>/dev/null || echo "NotRegistered")
+          
+          echo "SSM PingStatus: $SSM_STATUS"
+          
+          if [ "$SSM_STATUS" != "Online" ]; then
+            echo "SSM is not Online (Status: $SSM_STATUS). Attempting stop and start to restore connection..."
+            aws ec2 stop-instances --instance-ids "$INSTANCE_ID" --region eu-west-3
+            echo "Waiting for instance to stop..."
+            aws ec2 wait instance-stopped --instance-ids "$INSTANCE_ID" --region eu-west-3
+            echo "Starting instance..."
+            aws ec2 start-instances --instance-ids "$INSTANCE_ID" --region eu-west-3
+            aws ec2 wait instance-running --instance-ids "$INSTANCE_ID" --region eu-west-3
+            echo "Instance restarted. Waiting for status checks..."
+            aws ec2 wait instance-status-ok --instance-ids "$INSTANCE_ID" --region eu-west-3 || true
+          else
+            echo "SSM is Online. No reboot/restart needed."
+          fi
+
       - name: Wait for SSM to be ready
         run: |
           echo "Waiting for instance ${{ steps.vars.outputs.INSTANCE_ID }} to register in SSM..."
-          for i in {1..30}; do
+          for i in {1..40}; do
             STATE=$(aws ssm describe-instance-information --filters "Key=InstanceIds,Values=${{ steps.vars.outputs.INSTANCE_ID }}" --query "InstanceInformationList[0].PingStatus" --output text --region eu-west-3)
             if [ "$STATE" == "Online" ]; then
               echo "Instance is Online in SSM!"
