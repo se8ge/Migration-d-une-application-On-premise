@@ -103,11 +103,6 @@ jobs:
       - name: Terraform Init
         run: terraform -chdir=terraform init
 
-      - name: Fix Terraform Subnet Group State
-        run: |
-          terraform -chdir=terraform state rm aws_db_subnet_group.db_subnets || true
-          terraform -chdir=terraform import -var="db_password=${{ secrets.RDS_PASSWORD }}" -var="ssh_cidr=${{ secrets.SSH_ALLOWED_CIDR }}" aws_db_subnet_group.db_subnets stocklive-db-subnet-group || true
-
       - name: Terraform Apply (ensure infra is up)
         run: |
           terraform -chdir=terraform apply -auto-approve \
@@ -161,7 +156,7 @@ jobs:
               "sudo /usr/local/bin/docker-compose down --remove-orphans",
               "sudo /usr/local/bin/docker-compose -f monitoring/docker-compose.yml down --remove-orphans",
               "sudo docker system prune -f",
-              "if [ -n \"${{ secrets.DISCORD_WEBHOOK_URL }}\" ]; then sudo sed -i 's|YOUR_DISCORD_WEBHOOK_URL_HERE|${{ secrets.DISCORD_WEBHOOK_URL }}|g' monitoring/alertmanager.yml; fi",
+              "if [ -n \"${{ secrets.DISCORD_WEBHOOK_URL }}\" ]; then sudo sed -i \"s|YOUR_DISCORD_WEBHOOK_URL_HERE|${{ secrets.DISCORD_WEBHOOK_URL }}|g\" monitoring/alertmanager.yml; fi",
               "sudo /usr/local/bin/docker-compose up -d --build --force-recreate",
               "sudo /usr/local/bin/docker-compose -f monitoring/docker-compose.yml up -d --build --force-recreate",
               "sleep 20",
