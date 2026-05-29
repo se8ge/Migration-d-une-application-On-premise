@@ -30,8 +30,10 @@ def create_user_serge():
         if not store:
             logger.info("Aucun magasin trouvé, création du magasin par défaut...")
             store = models.Store(
-                store_name="Magasin Principal", 
-                store_code="M01", 
+                store_name="Magasin Principal",
+                store_code="M01",
+                store_phone="0000000000",
+                store_address="Adresse principale",
                 isactive=True,
                 createby="system"
             )
