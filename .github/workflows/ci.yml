@@ -239,11 +239,14 @@ jobs:
           DEPLOY_CMD="${DEPLOY_CMD//DB_ENDPOINT_PLACEHOLDER/${{ steps.vars.outputs.DB_ENDPOINT }}}"
           DEPLOY_CMD="${DEPLOY_CMD//DISCORD_WEBHOOK_PLACEHOLDER/${{ secrets.DISCORD_WEBHOOK_URL }}}"
 
+          # Use jq to create a safe JSON parameters file to avoid AWS CLI parsing issues
+          jq -n --arg cmd "$DEPLOY_CMD" '{"commands": [$cmd]}' > ssm_params.json
+
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "${{ steps.vars.outputs.INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
             --comment "Deploying StockLive" \
-            --parameters commands="$DEPLOY_CMD" \
+            --parameters file://ssm_params.json \
             --region eu-west-3 \
             --query "Command.CommandId" \
             --output text)
