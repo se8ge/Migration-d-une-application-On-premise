@@ -61,6 +61,7 @@ def create_user_serge():
     except Exception as e:
         logger.error(f"ERREUR LORS DE LA CRÉATION : {e}")
         db.rollback()
+        sys.exit(1)
     finally:
         db.close()
 
