@@ -210,8 +210,26 @@ jobs:
           fi
           sudo /usr/local/bin/docker-compose up -d --build --force-recreate
           sudo /usr/local/bin/docker-compose -f monitoring/docker-compose.yml up -d --build --force-recreate || true
-          sleep 30
-          sudo /usr/local/bin/docker-compose exec -T api python scripts/admin/create_user_serge.py || echo "User creation attempted"
+          echo "Waiting for api container to be healthy..."
+          IS_HEALTHY=false
+          for i in {1..30}; do
+            HEALTH_STATUS=$(sudo docker inspect --format='{{json .State.Health.Status}}' stocklive-api 2>/dev/null || echo "unknown")
+            echo "Attempt $i: Container health status is $HEALTH_STATUS"
+            if [ "$HEALTH_STATUS" = "\"healthy\"" ] || [ "$HEALTH_STATUS" = "healthy" ]; then
+              echo "Container is healthy!"
+              IS_HEALTHY=true
+              break
+            fi
+            sleep 10
+          done
+          
+          if [ "$IS_HEALTHY" = "true" ]; then
+            echo "Running user creation script..."
+            sudo /usr/local/bin/docker-compose exec -T api python scripts/admin/create_user_serge.py
+          else
+            echo "ERROR: Container api did not become healthy in time!"
+            exit 1
+          fi
           SSMEOF
           )
 
