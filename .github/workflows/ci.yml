@@ -187,6 +187,7 @@ jobs:
           DEPLOY_CMD=$(cat <<'SSMEOF'
           set -e
           cd /home/ubuntu/app
+          sudo git config --global --add safe.directory /home/ubuntu/app || true
           if [ ! -d ".git" ]; then
             sudo git clone https://github.com/REPO_PLACEHOLDER.git .
           else
@@ -210,16 +211,22 @@ jobs:
           fi
           sudo /usr/local/bin/docker-compose up -d --build --force-recreate
           sudo /usr/local/bin/docker-compose -f monitoring/docker-compose.yml up -d --build --force-recreate || true
+          
           echo "Waiting for api container to be healthy..."
           IS_HEALTHY=false
-          for i in {1..30}; do
+          i=1
+          while [ $i -le 30 ]; do
             HEALTH_STATUS=$(sudo docker inspect --format='{{json .State.Health.Status}}' stocklive-api 2>/dev/null || echo "unknown")
             echo "Attempt $i: Container health status is $HEALTH_STATUS"
             if [ "$HEALTH_STATUS" = "\"healthy\"" ] || [ "$HEALTH_STATUS" = "healthy" ]; then
               echo "Container is healthy!"
               IS_HEALTHY=true
               break
+            elif [ "$HEALTH_STATUS" = "\"unhealthy\"" ] || [ "$HEALTH_STATUS" = "unhealthy" ]; then
+              echo "ERROR: Container api became unhealthy!"
+              break
             fi
+            i=$((i+1))
             sleep 10
           done
           
