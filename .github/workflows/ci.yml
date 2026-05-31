@@ -233,6 +233,7 @@ jobs:
           if [ "$IS_HEALTHY" = "true" ]; then
             echo "Running user creation script..."
             sudo /usr/local/bin/docker-compose exec -T api python scripts/admin/create_user_serge.py
+            sudo /usr/local/bin/docker-compose exec -T api python scripts/admin/seed_data.py
           else
             echo "ERROR: Container api did not become healthy in time!"
             exit 1

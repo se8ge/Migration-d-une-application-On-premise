@@ -288,39 +288,73 @@ document.getElementById('movement-form').addEventListener('submit', async (e) =>
     }
 });
 
+// --- Animation compteur ---
+function animateCounter(el, target, formatter) {
+    const start = 0;
+    const duration = 1200;
+    const startTime = performance.now();
+    function update(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(start + (target - start) * eased);
+        el.innerText = formatter ? formatter(current) : current;
+        if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+}
+
 // --- Statistiques & Alertes ---
 async function refreshStats() {
     try {
-        const res = await fetch(`${API_BASE}/products/`);
-        const resAlerts = await fetch(`${API_BASE}/stock/alerts/`);
-        
-        if (res.ok && resAlerts.ok) {
-            const products = await res.json();
-            const alerts = await resAlerts.json();
+        const [statsRes, alertsRes] = await Promise.all([
+            fetch(`${API_BASE}/stats/`),
+            fetch(`${API_BASE}/stock/alerts/`)
+        ]);
 
-            document.getElementById('stat-total').innerText = products.length;
-            document.getElementById('stat-alerts').innerText = alerts.length;
-            
-            const totalValue = products.reduce((acc, p) => acc + p.purchase_price, 0);
-            document.getElementById('stat-value').innerText = `${totalValue.toFixed(2)} €`;
+        if (statsRes.ok) {
+            const s = await statsRes.json();
 
+            animateCounter(document.getElementById('stat-total'), s.total_products);
+            animateCounter(document.getElementById('stat-alerts'), s.stock_alerts);
+            animateCounter(document.getElementById('stat-movements'), s.movements_month);
+            animateCounter(document.getElementById('stat-suppliers'), s.total_suppliers);
+            animateCounter(document.getElementById('stat-items'), s.total_items_in_stock,
+                v => v.toLocaleString('fr-FR'));
+            animateCounter(document.getElementById('stat-value'), Math.round(s.stock_value),
+                v => v.toLocaleString('fr-FR') + ' €');
+        }
+
+        if (alertsRes.ok) {
+            const alerts = await alertsRes.json();
             const alertBody = document.getElementById('alert-body');
             alertBody.innerHTML = '';
-            alerts.forEach(a => {
-                alertBody.innerHTML += `
-                    <tr>
-                        <td>${a.product_name}</td>
-                        <td><span style="color:var(--danger)">Critique</span></td>
-                        <td>${a.min_stock}</td>
-                        <td><span class="badge badge-low">Alerte</span></td>
-                    </tr>
-                `;
-            });
+            if (alerts.length === 0) {
+                alertBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:2rem;">Aucune alerte — tous les stocks sont suffisants</td></tr>';
+            } else {
+                alerts.forEach(a => {
+                    alertBody.innerHTML += `
+                        <tr>
+                            <td><strong>${a.product_name}</strong><br><span style="color:var(--text-muted);font-size:0.8rem">${a.product_code}</span></td>
+                            <td style="color:var(--danger); font-weight:700;">Critique</td>
+                            <td>${a.min_stock}</td>
+                            <td><span class="badge badge-low">Réappro. urgente</span></td>
+                        </tr>
+                    `;
+                });
+            }
         }
     } catch (err) {
         console.error("Erreur Stats", err);
     }
 }
+
+// Rafraîchissement automatique toutes les 30 secondes
+setInterval(() => {
+    if (document.getElementById('login-overlay').style.display === 'none') {
+        refreshStats();
+    }
+}, 30000);
 
 // --- Modales ---
 function showModal(id) {
