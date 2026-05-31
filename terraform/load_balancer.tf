@@ -1,5 +1,5 @@
 resource "aws_lb" "main" {
-  name               = "${var.project_name}-alb-${random_id.infra_suffix.hex}"
+  name               = "${var.project_name}-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
@@ -11,7 +11,7 @@ resource "aws_lb" "main" {
 }
 
 resource "aws_lb_target_group" "api" {
-  name     = "${var.project_name}-api-tg-${random_id.infra_suffix.hex}"
+  name     = "${var.project_name}-api-tg"
   port     = 8000
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
