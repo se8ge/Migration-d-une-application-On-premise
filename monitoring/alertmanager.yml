@@ -11,4 +11,4 @@ route:
 receivers:
   - name: 'discord-webhook'
     webhook_configs:
-      - url: 'YOUR_DISCORD_WEBHOOK_URL_HERE' # À remplacer par l'URL réelle
+      - url: 'https://discord.com/api/webhooks/1506796130401386586/hEeK4CWvaB-vjCiKWAkGEcdGCt4ES9Hxdow2GX-d7R_csqVJAF3difga2YL81f8DUnRw'
