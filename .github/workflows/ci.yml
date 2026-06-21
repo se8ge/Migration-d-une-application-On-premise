@@ -186,6 +186,8 @@ jobs:
         run: |
           DEPLOY_CMD=$(cat <<'SSMEOF'
           set -e
+          sudo mkdir -p /home/ubuntu/app
+          sudo chown ubuntu:ubuntu /home/ubuntu/app
           cd /home/ubuntu/app
           sudo git config --global --add safe.directory /home/ubuntu/app || true
           if [ ! -d ".git" ]; then
