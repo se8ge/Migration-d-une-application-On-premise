@@ -10,5 +10,13 @@ route:
 
 receivers:
   - name: 'discord-webhook'
-    webhook_configs:
-      - url: 'https://discord.com/api/webhooks/1506796130401386586/hEeK4CWvaB-vjCiKWAkGEcdGCt4ES9Hxdow2GX-d7R_csqVJAF3difga2YL81f8DUnRw'
+    discord_configs:
+      - webhook_url: 'https://discord.com/api/webhooks/1506796130401386586/hEeK4CWvaB-vjCiKWAkGEcdGCt4ES9Hxdow2GX-d7R_csqVJAF3difga2YL81f8DUnRw'
+        send_resolved: true
+        title: '{{ if eq .Status "firing" }}🔴 ALERTE{{ else }}✅ RESOLUE{{ end }} — {{ .GroupLabels.alertname }}'
+        message: |
+          {{ range .Alerts }}
+          **{{ .Annotations.summary }}**
+          {{ .Annotations.description }}
+          Sévérité : {{ .Labels.severity }}
+          {{ end }}
