@@ -43,7 +43,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             currentUser = data.user;
             localStorage.setItem('token', data.access_token);
             document.getElementById('login-overlay').style.display = 'none';
-            refreshStats();
+            loadStores().then(() => refreshStats());
         } else {
             const errData = await res.json();
             errorEl.style.display = 'block';
@@ -306,10 +306,12 @@ function animateCounter(el, target, formatter) {
 
 // --- Statistiques & Alertes ---
 async function refreshStats() {
+    const storeId = document.getElementById('store-selector').value;
+    const storeParam = storeId ? `?store_id=${storeId}` : '';
     try {
         const [statsRes, alertsRes] = await Promise.all([
-            fetch(`${API_BASE}/stats/`),
-            fetch(`${API_BASE}/stock/alerts/`)
+            fetch(`${API_BASE}/stats/${storeParam}`),
+            fetch(`${API_BASE}/stock/alerts/${storeParam}`)
         ]);
 
         if (statsRes.ok) {
@@ -376,9 +378,31 @@ function hideModal(id) {
     document.getElementById(id).style.display = 'none';
 }
 
+// --- Chargement des magasins ---
+async function loadStores() {
+    try {
+        const res = await fetch(`${API_BASE}/stores/`);
+        if (res.ok) {
+            const stores = await res.json();
+            const selector = document.getElementById('store-selector');
+            selector.innerHTML = stores.map(s =>
+                `<option value="${s.store_id}">${s.store_name}</option>`
+            ).join('');
+        }
+    } catch (err) {
+        console.error("Erreur chargement magasins", err);
+    }
+}
+
+document.getElementById('store-selector').addEventListener('change', () => {
+    refreshStats();
+    if (!document.getElementById('inventory').classList.contains('active') === false) {
+        refreshInventory();
+    }
+});
+
 // Autoload
 if (localStorage.getItem('token')) {
-    // Dans une vraie app, on vérifierait le token ici
     document.getElementById('login-overlay').style.display = 'none';
-    refreshStats();
+    loadStores().then(() => refreshStats());
 }

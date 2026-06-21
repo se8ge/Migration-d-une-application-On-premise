@@ -99,33 +99,42 @@ def delete_product(product_id: int, db: Session = Depends(database.get_db)):
 
 # --- Stats Dashboard ---
 @app.get("/stats/")
-def get_stats(db: Session = Depends(database.get_db)):
+def get_stats(store_id: Optional[int] = None, db: Session = Depends(database.get_db)):
     total_products = db.query(models.Product).filter(models.Product.isactive == True).count()
     total_suppliers = db.query(models.Supplier).filter(models.Supplier.isactive == True).count()
     total_stores = db.query(models.Store).filter(models.Store.isactive == True).count()
 
-    stock_value = db.query(
+    stock_q = db.query(
         func.sum(models.StoreStock.InQty * models.Product.retail_price)
-    ).join(models.Product, models.StoreStock.ProdID == models.Product.product_id).scalar() or 0
+    ).join(models.Product, models.StoreStock.ProdID == models.Product.product_id)
+    if store_id:
+        stock_q = stock_q.filter(models.StoreStock.StoreID == store_id)
+    stock_value = stock_q.scalar() or 0
 
-    alerts = db.query(models.StoreStock).join(
+    alerts_q = db.query(models.StoreStock).join(
         models.Product, models.StoreStock.ProdID == models.Product.product_id
     ).filter(
         (models.StoreStock.InQty - models.StoreStock.OutQty) < models.Product.min_stock
-    ).count()
+    )
+    if store_id:
+        alerts_q = alerts_q.filter(models.StoreStock.StoreID == store_id)
+    alerts = alerts_q.count()
 
     thirty_days_ago = date.today() - timedelta(days=30)
-    movements_month = db.query(models.StockMovement).filter(
+    mov_q = db.query(models.StockMovement).filter(
         models.StockMovement.proposal_datetime >= thirty_days_ago
-    ).count()
+    )
+    if store_id:
+        mov_q = mov_q.filter(
+            (models.StockMovement.for_store_id == store_id) |
+            (models.StockMovement.from_store_id == store_id)
+        )
+    movements_month = mov_q.count()
 
-    approved_movements = db.query(models.StockMovement).filter(
-        models.StockMovement.is_approved == True
-    ).count()
-
-    total_items_in_stock = db.query(
-        func.sum(models.StoreStock.InQty - models.StoreStock.OutQty)
-    ).scalar() or 0
+    items_q = db.query(func.sum(models.StoreStock.InQty - models.StoreStock.OutQty))
+    if store_id:
+        items_q = items_q.filter(models.StoreStock.StoreID == store_id)
+    total_items_in_stock = items_q.scalar() or 0
 
     return {
         "total_products": total_products,
@@ -134,7 +143,6 @@ def get_stats(db: Session = Depends(database.get_db)):
         "stock_value": round(float(stock_value), 2),
         "stock_alerts": alerts,
         "movements_month": movements_month,
-        "approved_movements": approved_movements,
         "total_items_in_stock": int(total_items_in_stock),
     }
 
