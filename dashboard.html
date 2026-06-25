@@ -12,7 +12,7 @@
     <div id="login-overlay">
         <div class="login-card">
             <div class="logo">📦 StockLive</div>
-            <h2 style="margin-bottom: 2rem;">Connexion Sécurisée</h2>
+            <h2 class="login-title">Connexion Sécurisée</h2>
             <form id="login-form">
                 <div class="form-group">
                     <label>Email Professionnel</label>
@@ -22,18 +22,18 @@
                     <label>Mot de passe</label>
                     <input type="password" id="login-password" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
+                <button type="submit" class="btn btn-primary btn-full">
                     Accéder au Dashboard
                 </button>
             </form>
-            <p id="login-error" style="color: var(--danger); margin-top: 1.5rem; display: none; font-size: 0.9rem;"></p>
+            <p id="login-error" class="login-error"></p>
         </div>
     </div>
 
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
         <div class="logo">
-            <span style="background: var(--primary); color: white; padding: 6px; border-radius: 8px;">📦</span>
+            <span class="logo-icon">📦</span>
             <span>StockLive</span>
         </div>
         <ul class="nav-links">
@@ -58,8 +58,8 @@
                 </a>
             </li>
         </ul>
-        <div style="margin-top: auto; padding-top: 2rem;">
-            <button id="logout-btn" class="btn btn-danger" style="width: 100%;">
+        <div class="sidebar-bottom">
+            <button id="logout-btn" class="btn btn-danger btn-full">
                 <span>🚪</span> Déconnexion
             </button>
         </div>
@@ -71,13 +71,13 @@
         <section id="dashboard" class="section active">
             <header>
                 <div>
-                    <h1 style="background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Vue d'ensemble</h1>
-                    <p style="color: var(--text-muted); margin-top: 0.5rem;">Suivi en temps réel de votre activité.</p>
+                    <h1 class="header-title">Vue d'ensemble</h1>
+                    <p class="header-subtitle">Suivi en temps réel de votre activité.</p>
                 </div>
                 <div class="header-actions">
-                    <div style="display: flex; gap: 1rem; align-items: center;">
-                        <span style="color: var(--text-muted); font-size: 0.9rem;">Magasin :</span>
-                        <select id="store-selector" style="width: auto;">
+                    <div class="store-selector-wrapper">
+                        <span class="store-label">Magasin :</span>
+                        <select id="store-selector" class="store-select">
                             <option value="">Chargement...</option>
                         </select>
                     </div>
@@ -88,37 +88,37 @@
                 <div class="card">
                     <h3>Produits Actifs</h3>
                     <div class="value" id="stat-total">—</div>
-                    <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">références en catalogue</div>
+                    <div class="card-subtitle">références en catalogue</div>
                 </div>
                 <div class="card">
                     <h3>Valeur du Stock</h3>
                     <div class="value" id="stat-value">—</div>
-                    <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">prix de vente total</div>
+                    <div class="card-subtitle">prix de vente total</div>
                 </div>
                 <div class="card alert-card">
-                    <h3 style="color: #ef4444;">Alertes Stock Bas</h3>
-                    <div class="value" id="stat-alerts" style="color: #ef4444;">—</div>
-                    <div style="color: #ef4444; font-size: 0.8rem; margin-top: 0.5rem;">sous le seuil minimum</div>
+                    <h3 class="alert-title">Alertes Stock Bas</h3>
+                    <div class="value alert-value" id="stat-alerts">—</div>
+                    <div class="card-subtitle alert-subtitle">sous le seuil minimum</div>
                 </div>
                 <div class="card">
                     <h3>Mouvements (30j)</h3>
                     <div class="value" id="stat-movements">—</div>
-                    <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">transferts ce mois</div>
+                    <div class="card-subtitle">transferts ce mois</div>
                 </div>
                 <div class="card">
                     <h3>Fournisseurs</h3>
                     <div class="value" id="stat-suppliers">—</div>
-                    <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">partenaires actifs</div>
+                    <div class="card-subtitle">partenaires actifs</div>
                 </div>
                 <div class="card">
                     <h3>Articles en Stock</h3>
                     <div class="value" id="stat-items">—</div>
-                    <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">unités disponibles</div>
+                    <div class="card-subtitle">unités disponibles</div>
                 </div>
             </div>
 
             <div class="table-container">
-                <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Dernières Alertes de Stock</h2>
+                <h2 class="table-title">Dernières Alertes de Stock</h2>
                 <table>
                     <thead>
                         <tr>
@@ -128,9 +128,7 @@
                             <th>Statut</th>
                         </tr>
                     </thead>
-                    <tbody id="alert-body">
-                        <!-- Dynamique -->
-                    </tbody>
+                    <tbody id="alert-body"></tbody>
                 </table>
             </div>
         </section>
@@ -140,7 +138,7 @@
             <header>
                 <div>
                     <h1>Inventaire Global</h1>
-                    <p style="color: var(--text-muted); margin-top: 0.5rem;">Gestion de tous vos produits stockés.</p>
+                    <p class="header-subtitle">Gestion de tous vos produits stockés.</p>
                 </div>
                 <div class="header-actions">
                     <button class="btn btn-primary" onclick="showModal('product-modal')">
@@ -157,12 +155,10 @@
                             <th>Désignation</th>
                             <th>Prix Unitaire</th>
                             <th>Seuil</th>
-                            <th style="text-align: right;">Actions</th>
+                            <th class="th-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="inventory-body">
-                        <!-- Dynamique -->
-                    </tbody>
+                    <tbody id="inventory-body"></tbody>
                 </table>
             </div>
         </section>
@@ -187,9 +183,7 @@
                             <th>Statut</th>
                         </tr>
                     </thead>
-                    <tbody id="movements-body">
-                        <!-- Dynamique -->
-                    </tbody>
+                    <tbody id="movements-body"></tbody>
                 </table>
             </div>
         </section>
@@ -211,24 +205,21 @@
                             <th>Nom</th>
                             <th>Contact</th>
                             <th>Téléphone</th>
-                            <th style="text-align: right;">Actions</th>
+                            <th class="th-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="suppliers-body">
-                        <!-- Dynamique -->
-                    </tbody>
+                    <tbody id="suppliers-body"></tbody>
                 </table>
             </div>
         </section>
     </main>
 
-    <!-- Modals (Product, Supplier, etc.) -->
     <!-- Product Modal -->
     <div id="product-modal" class="modal-overlay">
         <div class="modal">
             <div class="modal-header">
                 <h2 id="modal-title">📦 Fiche Produit</h2>
-                <button onclick="hideModal('product-modal')" class="icon-btn" style="font-size: 1.5rem;">✕</button>
+                <button onclick="hideModal('product-modal')" class="icon-btn modal-close">✕</button>
             </div>
             <form id="product-form">
                 <input type="hidden" id="prod-id">
@@ -236,8 +227,7 @@
                     <label>Nom du Produit</label>
                     <input type="text" id="prod-name" placeholder="Ex: iPhone 15 Pro" required>
                 </div>
-                <!-- ... reste du formulaire ... -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="form-grid">
                     <div class="form-group">
                         <label>Code Article</label>
                         <input type="text" id="prod-code" placeholder="IP15-64" required>
@@ -247,7 +237,7 @@
                         <input type="text" id="prod-cat" placeholder="Électronique" required>
                     </div>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="form-grid">
                     <div class="form-group">
                         <label>Prix Achat (€)</label>
                         <input type="number" step="0.01" id="prod-price" required>
@@ -257,9 +247,9 @@
                         <input type="number" id="prod-min" required>
                     </div>
                 </div>
-                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                    <button type="button" class="btn btn-danger" onclick="hideModal('product-modal')" style="flex: 1; justify-content: center;">Annuler</button>
-                    <button type="submit" class="btn btn-primary" style="flex: 2; justify-content: center;">Enregistrer le Produit</button>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-danger btn-cancel" onclick="hideModal('product-modal')">Annuler</button>
+                    <button type="submit" class="btn btn-primary btn-submit">Enregistrer le Produit</button>
                 </div>
             </form>
         </div>
@@ -270,14 +260,14 @@
         <div class="modal">
             <div class="modal-header">
                 <h2>🤝 Nouveau Fournisseur</h2>
-                <button onclick="hideModal('supplier-modal')" class="icon-btn" style="font-size: 1.5rem;">✕</button>
+                <button onclick="hideModal('supplier-modal')" class="icon-btn modal-close">✕</button>
             </div>
             <form id="supplier-form">
                 <div class="form-group">
                     <label>Nom du Fournisseur</label>
                     <input type="text" id="supp-name" placeholder="Ex: Apple Distribution" required>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="form-grid">
                     <div class="form-group">
                         <label>Code</label>
                         <input type="text" id="supp-code" placeholder="SUPP-001" required>
@@ -299,9 +289,9 @@
                     <label>Contact Référent</label>
                     <input type="text" id="supp-contact" placeholder="Nom du contact" required>
                 </div>
-                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                    <button type="button" class="btn btn-danger" onclick="hideModal('supplier-modal')" style="flex: 1; justify-content: center;">Annuler</button>
-                    <button type="submit" class="btn btn-primary" style="flex: 2; justify-content: center;">Enregistrer le Fournisseur</button>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-danger btn-cancel" onclick="hideModal('supplier-modal')">Annuler</button>
+                    <button type="submit" class="btn btn-primary btn-submit">Enregistrer le Fournisseur</button>
                 </div>
             </form>
         </div>
@@ -312,16 +302,14 @@
         <div class="modal">
             <div class="modal-header">
                 <h2>🔄 Nouveau Mouvement</h2>
-                <button onclick="hideModal('movement-modal')" class="icon-btn" style="font-size: 1.5rem;">✕</button>
+                <button onclick="hideModal('movement-modal')" class="icon-btn modal-close">✕</button>
             </div>
             <form id="movement-form">
                 <div class="form-group">
                     <label>Produit</label>
-                    <select id="move-prod" required>
-                        <!-- Dynamique -->
-                    </select>
+                    <select id="move-prod" required></select>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="form-grid">
                     <div class="form-group">
                         <label>Depuis Magasin</label>
                         <select id="move-from" required>
@@ -339,15 +327,14 @@
                     <label>Quantité</label>
                     <input type="number" id="move-qty" min="1" required>
                 </div>
-                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                    <button type="button" class="btn btn-danger" onclick="hideModal('movement-modal')" style="flex: 1; justify-content: center;">Annuler</button>
-                    <button type="submit" class="btn btn-primary" style="flex: 2; justify-content: center;">Confirmer le Mouvement</button>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-danger btn-cancel" onclick="hideModal('movement-modal')">Annuler</button>
+                    <button type="submit" class="btn btn-primary btn-submit">Confirmer le Mouvement</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="dashboard.js"></script>
 </body>
 </html>

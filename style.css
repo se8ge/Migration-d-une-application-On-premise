@@ -355,6 +355,123 @@ input:focus {
     margin-bottom: 2rem;
 }
 
+/* --- Login --- */
+.login-title {
+    margin-bottom: 2rem;
+}
+
+.login-error {
+    color: var(--danger);
+    margin-top: 1.5rem;
+    display: none;
+    font-size: 0.9rem;
+}
+
+/* --- Sidebar --- */
+.logo-icon {
+    background: var(--primary);
+    color: white;
+    padding: 6px;
+    border-radius: 8px;
+}
+
+.sidebar-bottom {
+    margin-top: auto;
+    padding-top: 2rem;
+}
+
+/* --- Header --- */
+.header-title {
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.header-subtitle {
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+}
+
+.store-selector-wrapper {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.store-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.store-select {
+    width: auto;
+}
+
+/* --- Cards --- */
+.card-subtitle {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.alert-title {
+    color: #ef4444;
+}
+
+.alert-value {
+    color: #ef4444;
+}
+
+.alert-subtitle {
+    color: #ef4444;
+}
+
+/* --- Tables --- */
+.table-title {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.th-right {
+    text-align: right;
+}
+
+/* --- Buttons --- */
+.btn-full {
+    width: 100%;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+/* --- Modals --- */
+.modal-close {
+    font-size: 1.5rem;
+}
+
+/* --- Forms --- */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.btn-cancel {
+    flex: 1;
+    justify-content: center;
+}
+
+.btn-submit {
+    flex: 2;
+    justify-content: center;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
