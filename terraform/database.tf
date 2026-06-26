@@ -30,8 +30,17 @@ resource "aws_db_instance" "mysql" {
   parameter_group_name = "default.mysql8.0"
   db_subnet_group_name = aws_db_subnet_group.db_subnets.name
   vpc_security_group_ids = [aws_security_group.db_sg.id]
-  skip_final_snapshot  = true
   publicly_accessible  = false
+
+  # Stratégie de sauvegarde
+  backup_retention_period   = 1                # Sauvegarde automatique 1 jour (limite Free Tier)
+  backup_window             = "02:00-03:00"    # Sauvegarde à 2h du matin (faible trafic)
+  maintenance_window        = "mon:03:00-mon:04:00"
+
+  # Protection contre la suppression accidentelle
+  skip_final_snapshot       = false
+  final_snapshot_identifier = "${var.project_name}-final-snapshot"
+  deletion_protection       = true
 
   tags = {
     Name = "${var.project_name}-db"
